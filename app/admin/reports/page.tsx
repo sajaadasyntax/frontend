@@ -1,0 +1,429 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useLocaleStore } from '@/store/locale-store'
+import { useAuthStore } from '@/store/auth-store'
+import { reportsApi } from '@/lib/api'
+import toast from 'react-hot-toast'
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts'
+
+const COLORS = [
+  '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8',
+  '#82CA9D', '#FFC658', '#FF6B6B', '#4ECDC4', '#45B7D1'
+]
+
+interface TopProduct {
+  productId: string
+  name: string
+  nameAr: string
+  totalQuantity: number
+  totalRevenue: number
+}
+
+interface TopCustomer {
+  userId: string
+  name: string
+  phone: string
+  email: string
+  totalOrders: number
+  totalSpent: number
+}
+
+interface ProfitLossData {
+  chartData: Array<{
+    day: string
+    dayNum: number
+    revenue: number
+    cost: number
+    profit: number
+  }>
+  summary: {
+    totalRevenue: number
+    totalCost: number
+    totalProfit: number
+    totalProcurementCost: number
+    netProfit: number
+  }
+}
+
+export default function ReportsPage() {
+  const { locale } = useLocaleStore()
+  const { token } = useAuthStore()
+  const isArabic = locale === 'ar'
+
+  const [loading, setLoading] = useState(true)
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([])
+  const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([])
+  const [profitLoss, setProfitLoss] = useState<ProfitLossData | null>(null)
+  const [activeTab, setActiveTab] = useState<'products' | 'customers' | 'profit'>('products')
+
+  useEffect(() => {
+    if (!token) return
+    fetchAllReports()
+  }, [token])
+
+  const fetchAllReports = async () => {
+    if (!token) return
+    
+    setLoading(true)
+    try {
+      const [products, customers, pnl] = await Promise.all([
+        reportsApi.getTopProducts(token),
+        reportsApi.getTopCustomers(token),
+        reportsApi.getProfitLoss(token)
+      ])
+      
+      setTopProducts(products)
+      setTopCustomers(customers)
+      setProfitLoss(pnl)
+    } catch (error) {
+      toast.error(isArabic ? 'خطأ في تحميل التقارير' : 'Error loading reports')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatCurrency = (value: number) => `SDG ${value.toLocaleString()}`
+
+  // Prepare data for pie charts
+  const productsPieData = topProducts.map((p, i) => ({
+    name: isArabic ? p.nameAr : p.name,
+    value: p.totalQuantity,
+    color: COLORS[i % COLORS.length]
+  }))
+
+  const customersPieData = topCustomers.map((c, i) => ({
+    name: c.name || c.phone,
+    value: c.totalSpent,
+    color: COLORS[i % COLORS.length]
+  }))
+
+  // Filter profit/loss data to show only non-zero days for cleaner chart
+  const profitChartData = profitLoss?.chartData.filter(d => d.revenue > 0 || d.cost > 0) || []
+
+  const currentMonth = new Date().toLocaleDateString(isArabic ? 'ar-EG' : 'en-US', { 
+    month: 'long', 
+    year: 'numeric' 
+  })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-600">{isArabic ? 'جاري تحميل التقارير...' : 'Loading reports...'}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-primary">
+          {isArabic ? 'التقارير' : 'Reports'}
+        </h1>
+        <p className="text-gray-600 text-lg">
+          📅 {currentMonth}
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      {profitLoss && (
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <p className="text-gray-600 text-sm">{isArabic ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+            <p className="text-2xl font-bold text-green-600 mt-1">
+              SDG {profitLoss.summary.totalRevenue.toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <p className="text-gray-600 text-sm">{isArabic ? 'إجمالي التكاليف' : 'Total Costs'}</p>
+            <p className="text-2xl font-bold text-red-600 mt-1">
+              SDG {profitLoss.summary.totalCost.toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <p className="text-gray-600 text-sm">{isArabic ? 'تكاليف المشتريات' : 'Procurement Costs'}</p>
+            <p className="text-2xl font-bold text-orange-600 mt-1">
+              SDG {profitLoss.summary.totalProcurementCost.toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <p className="text-gray-600 text-sm">{isArabic ? 'صافي الربح' : 'Net Profit'}</p>
+            <p className={`text-2xl font-bold mt-1 ${profitLoss.summary.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              SDG {profitLoss.summary.netProfit.toLocaleString()}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Navigation */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('products')}
+          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+            activeTab === 'products' 
+              ? 'bg-primary text-white' 
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          📦 {isArabic ? 'أعلى المنتجات مبيعاً' : 'Top Products'}
+        </button>
+        <button
+          onClick={() => setActiveTab('customers')}
+          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+            activeTab === 'customers' 
+              ? 'bg-primary text-white' 
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          👥 {isArabic ? 'أعلى العملاء' : 'Top Customers'}
+        </button>
+        <button
+          onClick={() => setActiveTab('profit')}
+          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+            activeTab === 'profit' 
+              ? 'bg-primary text-white' 
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          📊 {isArabic ? 'الأرباح والخسائر' : 'Profit & Loss'}
+        </button>
+      </div>
+
+      {/* Charts Container */}
+      <div className="bg-white rounded-xl shadow-md p-6">
+        {/* Top Products Tab */}
+        {activeTab === 'products' && (
+          <div>
+            <h2 className="text-xl font-bold text-primary mb-6">
+              {isArabic ? 'أعلى 10 منتجات مبيعاً هذا الشهر' : 'Top 10 Selling Products This Month'}
+            </h2>
+            
+            {topProducts.length === 0 ? (
+              <p className="text-gray-500 text-center py-12">
+                {isArabic ? 'لا توجد بيانات مبيعات هذا الشهر' : 'No sales data for this month'}
+              </p>
+            ) : (
+              <div className="grid lg:grid-cols-2 gap-8">
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={productsPieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={150}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      >
+                        {productsPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} units`, isArabic ? 'الكمية' : 'Quantity']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div>
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="text-left p-3">#</th>
+                        <th className="text-left p-3">{isArabic ? 'المنتج' : 'Product'}</th>
+                        <th className="text-center p-3">{isArabic ? 'الكمية' : 'Qty'}</th>
+                        <th className="text-right p-3">{isArabic ? 'الإيرادات' : 'Revenue'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {topProducts.map((product, i) => (
+                        <tr key={product.productId} className="hover:bg-gray-50">
+                          <td className="p-3">
+                            <span 
+                              className="w-6 h-6 rounded-full inline-flex items-center justify-center text-white text-xs"
+                              style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                            >
+                              {i + 1}
+                            </span>
+                          </td>
+                          <td className="p-3 font-medium">{isArabic ? product.nameAr : product.name}</td>
+                          <td className="p-3 text-center">{product.totalQuantity}</td>
+                          <td className="p-3 text-right font-semibold text-green-600">
+                            SDG {product.totalRevenue.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Top Customers Tab */}
+        {activeTab === 'customers' && (
+          <div>
+            <h2 className="text-xl font-bold text-primary mb-6">
+              {isArabic ? 'أعلى 10 عملاء هذا الشهر' : 'Top 10 Customers This Month'}
+            </h2>
+            
+            {topCustomers.length === 0 ? (
+              <p className="text-gray-500 text-center py-12">
+                {isArabic ? 'لا توجد بيانات عملاء هذا الشهر' : 'No customer data for this month'}
+              </p>
+            ) : (
+              <div className="grid lg:grid-cols-2 gap-8">
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={customersPieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={150}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name.substring(0, 10)}... (${(percent * 100).toFixed(0)}%)`}
+                      >
+                        {customersPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [formatCurrency(value as number), isArabic ? 'المشتريات' : 'Spent']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                <div>
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="text-left p-3">#</th>
+                        <th className="text-left p-3">{isArabic ? 'العميل' : 'Customer'}</th>
+                        <th className="text-center p-3">{isArabic ? 'الطلبات' : 'Orders'}</th>
+                        <th className="text-right p-3">{isArabic ? 'الإنفاق' : 'Spent'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {topCustomers.map((customer, i) => (
+                        <tr key={customer.userId} className="hover:bg-gray-50">
+                          <td className="p-3">
+                            <span 
+                              className="w-6 h-6 rounded-full inline-flex items-center justify-center text-white text-xs"
+                              style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                            >
+                              {i + 1}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <p className="font-medium">{customer.name || '-'}</p>
+                            <p className="text-sm text-gray-500">{customer.phone}</p>
+                          </td>
+                          <td className="p-3 text-center">{customer.totalOrders}</td>
+                          <td className="p-3 text-right font-semibold text-green-600">
+                            SDG {customer.totalSpent.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Profit & Loss Tab */}
+        {activeTab === 'profit' && (
+          <div>
+            <h2 className="text-xl font-bold text-primary mb-6">
+              {isArabic ? 'تقرير الأرباح والخسائر لهذا الشهر' : 'Profit & Loss Report This Month'}
+            </h2>
+            
+            {profitChartData.length === 0 ? (
+              <p className="text-gray-500 text-center py-12">
+                {isArabic ? 'لا توجد بيانات هذا الشهر' : 'No data for this month'}
+              </p>
+            ) : (
+              <div className="h-[500px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={profitChartData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} />
+                    <Tooltip 
+                      formatter={(value) => formatCurrency(value as number)}
+                      labelFormatter={(label) => label}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="revenue" 
+                      name={isArabic ? 'الإيرادات' : 'Revenue'} 
+                      fill="#22c55e" 
+                    />
+                    <Bar 
+                      dataKey="cost" 
+                      name={isArabic ? 'التكاليف' : 'Costs'} 
+                      fill="#ef4444" 
+                    />
+                    <Bar 
+                      dataKey="profit" 
+                      name={isArabic ? 'الربح' : 'Profit'} 
+                      fill="#3b82f6" 
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Summary Table */}
+            {profitLoss && (
+              <div className="mt-8 grid md:grid-cols-2 gap-6">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-green-800 mb-2">
+                    💰 {isArabic ? 'الإيرادات' : 'Revenue'}
+                  </h3>
+                  <p className="text-2xl font-bold text-green-600">
+                    SDG {profitLoss.summary.totalRevenue.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-red-800 mb-2">
+                    📉 {isArabic ? 'التكاليف' : 'Costs'}
+                  </h3>
+                  <p className="text-2xl font-bold text-red-600">
+                    SDG {(profitLoss.summary.totalCost + profitLoss.summary.totalProcurementCost).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-red-700 mt-1">
+                    {isArabic ? 'تكاليف المنتجات' : 'Product costs'}: SDG {profitLoss.summary.totalCost.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-red-700">
+                    {isArabic ? 'تكاليف المشتريات' : 'Procurement'}: SDG {profitLoss.summary.totalProcurementCost.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
