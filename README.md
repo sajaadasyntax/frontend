@@ -27,7 +27,7 @@ Next.js frontend for the Mayan Shop e-commerce platform with Arabic/English supp
    ```
 
 2. **Set up environment variables**
-   Create `.env.local`:
+   Create `.env.local` (optional - defaults to `https://api.enabholding.com/api`):
    ```
    NEXT_PUBLIC_API_URL=http://localhost:5000/api
    ```
@@ -86,7 +86,7 @@ frontend/
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_API_URL` | Backend API URL | `http://localhost:5000/api` |
+| `NEXT_PUBLIC_API_URL` | Backend API URL | `https://api.enabholding.com/api` |
 
 ## Scripts
 
