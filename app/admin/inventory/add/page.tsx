@@ -12,6 +12,9 @@ interface Category {
   id: string
   nameEn: string
   nameAr: string
+  parentId: string | null
+  parent?: Category | null
+  children?: Category[]
 }
 
 export default function AddProductPage() {
@@ -32,7 +35,6 @@ export default function AddProductPage() {
     descriptionAr: '',
     price: '',
     costPrice: '',
-    stock: '',
     categoryId: '',
     isNew: false,
     isSale: false,
@@ -42,10 +44,21 @@ export default function AddProductPage() {
   })
 
   useEffect(() => {
-    categoriesApi.getAll()
+    // Get flat list for dropdown
+    categoriesApi.getAll(true)
       .then(data => setCategories(data))
       .catch(() => {})
   }, [])
+
+  // Helper to build category display name with parent info
+  const getCategoryDisplayName = (cat: Category): string => {
+    const name = isArabic ? cat.nameAr : cat.nameEn
+    if (cat.parent) {
+      const parentName = isArabic ? cat.parent.nameAr : cat.parent.nameEn
+      return `${parentName} → ${name}`
+    }
+    return name
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -91,6 +104,16 @@ export default function AddProductPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 max-w-3xl">
+        {/* Stock Note */}
+        <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            💡 {isArabic 
+              ? 'ملاحظة: المخزون يدار عبر صفحة المشتريات. أضف المنتج أولاً ثم استخدم المشتريات لإضافة الكمية.'
+              : 'Note: Stock is managed via the Procurement page. Add the product first, then use Procurement to add inventory.'
+            }
+          </p>
+        </div>
+        
         <div className="grid md:grid-cols-2 gap-6">
           {/* Image Upload */}
           <div className="md:col-span-2">
@@ -204,20 +227,6 @@ export default function AddProductPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isArabic ? 'المخزون' : 'Stock'} *
-            </label>
-            <input
-              type="number"
-              value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-              className="input-field"
-              required
-              min="0"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               {isArabic ? 'الفئة' : 'Category'} *
             </label>
             <select
@@ -229,7 +238,7 @@ export default function AddProductPage() {
               <option value="">{isArabic ? 'اختر الفئة' : 'Select Category'}</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {isArabic ? cat.nameAr : cat.nameEn}
+                  {cat.parent ? '└ ' : ''}{getCategoryDisplayName(cat)}
                 </option>
               ))}
             </select>

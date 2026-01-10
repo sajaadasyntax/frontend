@@ -12,6 +12,9 @@ interface Category {
   id: string
   nameEn: string
   nameAr: string
+  parentId: string | null
+  parent?: Category | null
+  children?: Category[]
 }
 
 export default function EditProductPage() {
@@ -35,7 +38,6 @@ export default function EditProductPage() {
     descriptionAr: '',
     price: '',
     costPrice: '',
-    stock: '',
     categoryId: '',
     image: '',
     isNew: false,
@@ -45,9 +47,19 @@ export default function EditProductPage() {
     loyaltyPointsValue: ''
   })
 
+  // Helper to build category display name with parent info
+  const getCategoryDisplayName = (cat: Category): string => {
+    const name = isArabic ? cat.nameAr : cat.nameEn
+    if (cat.parent) {
+      const parentName = isArabic ? cat.parent.nameAr : cat.parent.nameEn
+      return `${parentName} → ${name}`
+    }
+    return name
+  }
+
   useEffect(() => {
     Promise.all([
-      categoriesApi.getAll(),
+      categoriesApi.getAll(true), // Get flat list with parent info
       productsApi.getById(productId)
     ]).then(([cats, product]) => {
       setCategories(cats)
@@ -58,7 +70,6 @@ export default function EditProductPage() {
         descriptionAr: product.descriptionAr || '',
         price: product.price?.toString() || '',
         costPrice: product.costPrice?.toString() || '',
-        stock: product.stock?.toString() || '',
         categoryId: product.categoryId || '',
         image: product.image || '',
         isNew: product.isNew || false,
@@ -131,6 +142,16 @@ export default function EditProductPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 max-w-3xl">
+        {/* Stock Note */}
+        <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            💡 {isArabic 
+              ? 'ملاحظة: المخزون يدار عبر صفحة المشتريات. لتعديل كمية المخزون، استخدم صفحة المشتريات.'
+              : 'Note: Stock is managed via the Procurement page. To update inventory quantity, use the Procurement page.'
+            }
+          </p>
+        </div>
+        
         <div className="grid md:grid-cols-2 gap-6">
           {/* Image Upload */}
           <div className="md:col-span-2">
@@ -244,20 +265,6 @@ export default function EditProductPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isArabic ? 'المخزون' : 'Stock'} *
-            </label>
-            <input
-              type="number"
-              value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-              className="input-field"
-              required
-              min="0"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               {isArabic ? 'الفئة' : 'Category'} *
             </label>
             <select
@@ -269,7 +276,7 @@ export default function EditProductPage() {
               <option value="">{isArabic ? 'اختر الفئة' : 'Select Category'}</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {isArabic ? cat.nameAr : cat.nameEn}
+                  {cat.parent ? '└ ' : ''}{getCategoryDisplayName(cat)}
                 </option>
               ))}
             </select>

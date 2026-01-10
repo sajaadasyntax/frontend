@@ -28,7 +28,13 @@ export default function LoginPage() {
       const { user, token } = await authApi.login(formData)
       setAuth(user, token)
       toast.success('Login successful!')
-      router.push('/')
+      
+      // Redirect admin to admin panel, users to home
+      if (user.role === 'ADMIN') {
+        router.push('/admin')
+      } else {
+        router.push('/')
+      }
     } catch (error: any) {
       toast.error(error.message || 'Invalid phone number or password')
     } finally {

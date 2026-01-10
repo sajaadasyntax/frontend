@@ -6,14 +6,24 @@ import { useTranslations } from 'next-intl'
 import { useCartStore } from '@/store/cart-store'
 import { useLocaleStore } from '@/store/locale-store'
 import { useAuthStore } from '@/store/auth-store'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 
 export default function Header() {
   const t = useTranslations('common')
+  const router = useRouter()
+  const pathname = usePathname()
   const { locale, setLocale } = useLocaleStore()
   const cartItemCount = useCartStore((state) => state.getItemCount())
   const { user, isAuthenticated, logout } = useAuthStore()
   const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Redirect admin users to admin panel (they shouldn't access user pages)
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'ADMIN' && !pathname.startsWith('/admin')) {
+      router.replace('/admin')
+    }
+  }, [isAuthenticated, user, pathname, router])
 
   const toggleLocale = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'

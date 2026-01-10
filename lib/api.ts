@@ -25,6 +25,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     method,
     headers,
     credentials: 'include',
+    cache: 'no-store', // Prevent browser caching for fresh data
   }
 
   if (body) {
@@ -79,12 +80,18 @@ export const productsApi = {
 
 // Categories API
 export const categoriesApi = {
-  getAll: () => request<any[]>('/categories'),
+  getAll: (flat?: boolean) => request<any[]>(`/categories${flat ? '?flat=true' : ''}`),
   
   getById: (id: string) => request<any>(`/categories/${id}`),
   
   create: (data: any, token: string) =>
     request<any>('/categories', { method: 'POST', body: data, token }),
+  
+  update: (id: string, data: any, token: string) =>
+    request<any>(`/categories/${id}`, { method: 'PUT', body: data, token }),
+  
+  delete: (id: string, token: string) =>
+    request<void>(`/categories/${id}`, { method: 'DELETE', token }),
 }
 
 // Orders API

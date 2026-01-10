@@ -25,6 +25,12 @@ interface Category {
   id: string
   nameEn: string
   nameAr: string
+  parentId: string | null
+  children?: Category[]
+  _count?: {
+    products: number
+    children: number
+  }
 }
 
 export default function HomePage() {
@@ -34,6 +40,7 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -48,12 +55,132 @@ export default function HomePage() {
       .catch(() => setLoading(false))
   }, [])
 
-  // Group products by category
-  const productsByCategory = categories.map(category => ({
-    ...category,
-    name: isArabic ? category.nameAr : category.nameEn,
-    products: products.filter(p => p.categoryId === category.id)
-  }))
+  // Get all category IDs including children for filtering
+  const getAllCategoryIds = (category: Category): string[] => {
+    const ids = [category.id]
+    if (category.children) {
+      category.children.forEach(child => {
+        ids.push(...getAllCategoryIds(child))
+      })
+    }
+    return ids
+  }
+
+  // Get products for a category (including all subcategories)
+  const getProductsForCategory = (category: Category): Product[] => {
+    const allIds = getAllCategoryIds(category)
+    return products.filter(p => allIds.includes(p.categoryId))
+  }
+
+  // Flatten categories for rendering sections (shows subcategories with their products)
+  const renderCategorySection = (category: Category, level: number = 0, bgIndex: number = 0) => {
+    const categoryProducts = products.filter(p => p.categoryId === category.id)
+    const categoryName = isArabic ? category.nameAr : category.nameEn
+    const hasDirectProducts = categoryProducts.length > 0
+    const hasChildren = category.children && category.children.length > 0
+
+    return (
+      <div key={category.id}>
+        {/* Show category section if it has direct products */}
+        {hasDirectProducts && (
+          <section 
+            className={`py-14 ${(bgIndex + level) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+          >
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center gap-3 mb-6">
+                {level > 0 && (
+                  <span className="text-gray-400 text-sm">└</span>
+                )}
+                <h2 className={`section-title ${level > 0 ? 'text-xl' : ''}`}>
+                  {categoryName.toUpperCase()}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                {categoryProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    nameEn={product.nameEn}
+                    nameAr={product.nameAr}
+                    price={product.price}
+                    image={product.image || undefined}
+                    isSale={product.isSale}
+                    isNew={product.isNew}
+                    discount={product.discount || undefined}
+                    loyaltyPointsEnabled={product.loyaltyPointsEnabled}
+                    loyaltyPointsValue={product.loyaltyPointsValue}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Render parent category header if it only has subcategories */}
+        {!hasDirectProducts && hasChildren && (
+          <section className={`py-8 ${(bgIndex + level) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+            <div className="max-w-7xl mx-auto">
+              <h2 className="section-title text-primary border-b-2 border-primary pb-2 mb-2">
+                {categoryName.toUpperCase()}
+              </h2>
+            </div>
+          </section>
+        )}
+
+        {/* Render children */}
+        {hasChildren && category.children!.map((child, idx) => 
+          renderCategorySection(child, level + 1, bgIndex + idx + 1)
+        )}
+      </div>
+    )
+  }
+
+  // Category filter tabs
+  const CategoryTabs = () => {
+    if (categories.length === 0) return null
+
+    return (
+      <div className="bg-white py-4 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap gap-2 justify-center">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === null 
+                  ? 'bg-primary text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {isArabic ? 'الكل' : 'All'}
+            </button>
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  selectedCategory === category.id 
+                    ? 'bg-primary text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {isArabic ? category.nameAr : category.nameEn}
+                {category._count && category._count.children > 0 && (
+                  <span className="ml-1 text-xs opacity-75">
+                    ({category._count.children})
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Filter categories based on selection
+  const filteredCategories = selectedCategory 
+    ? categories.filter(c => c.id === selectedCategory)
+    : categories
 
   return (
     <div className="min-h-screen bg-white" style={{ marginLeft: '5%', marginRight: '5%' }}>
@@ -126,46 +253,17 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Category Tabs */}
+      <CategoryTabs />
+
       {/* Product Sections by Category */}
       <div id="products">
         {loading ? (
           <div className="py-14 text-center">
             <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
           </div>
-        ) : productsByCategory.length > 0 ? (
-          productsByCategory.map((category, index) => (
-            <section 
-              key={category.id}
-              className={`py-14 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
-            >
-              <div className="max-w-7xl mx-auto">
-                <h2 className="section-title">{category.name.toUpperCase()}</h2>
-                {category.products.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                    {category.products.map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        id={product.id}
-                        nameEn={product.nameEn}
-                        nameAr={product.nameAr}
-                        price={product.price}
-                        image={product.image || undefined}
-                        isSale={product.isSale}
-                        isNew={product.isNew}
-                        discount={product.discount || undefined}
-                        loyaltyPointsEnabled={product.loyaltyPointsEnabled}
-                        loyaltyPointsValue={product.loyaltyPointsValue}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-gray-500">
-                    {isArabic ? 'لا توجد منتجات في هذه الفئة' : 'No products in this category'}
-                  </p>
-                )}
-              </div>
-            </section>
-          ))
+        ) : filteredCategories.length > 0 ? (
+          filteredCategories.map((category, index) => renderCategorySection(category, 0, index))
         ) : (
           <>
             {/* Default sections if no categories */}

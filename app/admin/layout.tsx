@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth-store'
 
 const adminNavItems = [
   { href: '/admin', labelEn: 'Dashboard', labelAr: 'لوحة التحكم', icon: '📊' },
+  { href: '/admin/categories', labelEn: 'Categories', labelAr: 'الفئات', icon: '📁' },
   { href: '/admin/inventory', labelEn: 'Inventory', labelAr: 'المخزون', icon: '📦' },
   { href: '/admin/invoices', labelEn: 'Invoices', labelAr: 'الفواتير', icon: '🧾' },
   { href: '/admin/procurement', labelEn: 'Procurement', labelAr: 'المشتريات', icon: '🛒' },
