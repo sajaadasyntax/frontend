@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ProductCard from '@/components/ProductCard'
 import { useLocaleStore } from '@/store/locale-store'
-import { productsApi, categoriesApi } from '@/lib/api'
+import { productsApi, categoriesApi, recipesApi } from '@/lib/api'
 
 interface Product {
   id: string
@@ -39,17 +39,20 @@ export default function HomePage() {
   
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [productsWithRecipes, setProductsWithRecipes] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
       productsApi.getAll(),
-      categoriesApi.getAll()
+      categoriesApi.getAll(),
+      recipesApi.getProductsWithRecipes()
     ])
-      .then(([productsData, categoriesData]) => {
+      .then(([productsData, categoriesData, recipesData]) => {
         setProducts(productsData)
         setCategories(categoriesData)
+        setProductsWithRecipes(recipesData)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -109,6 +112,7 @@ export default function HomePage() {
                     discount={product.discount || undefined}
                     loyaltyPointsEnabled={product.loyaltyPointsEnabled}
                     loyaltyPointsValue={product.loyaltyPointsValue}
+                    hasRecipes={productsWithRecipes.includes(product.id)}
                   />
                 ))}
               </div>
@@ -184,73 +188,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white" style={{ marginLeft: '5%', marginRight: '5%' }}>
-      {/* Hero Section */}
-      <section 
-        className="bg-gradient-to-br from-gray-100 to-gray-200 py-16"
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-5">
-              {/* Best Seller Badge */}
-              <div className="inline-block">
-                <div className="relative w-[110px] h-[110px]">
-                  <svg width="110" height="110" viewBox="0 0 110 110" className="text-gold">
-                    <circle cx="55" cy="55" r="48" fill="currentColor" opacity="0.15" />
-                    <circle cx="55" cy="55" r="38" fill="currentColor" />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                    <div className="flex gap-0.5 mb-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-300 text-[10px]">★</span>
-                      ))}
-                    </div>
-                    <p className="text-[10px] font-bold leading-tight">
-                      {isArabic ? 'الأكثر' : 'BEST'}
-                    </p>
-                    <p className="text-[10px] font-bold leading-tight">
-                      {isArabic ? 'مبيعاً' : 'SELLER'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Title and Description */}
-              <div>
-                <h1 className="text-[32px] font-bold text-primary mb-3">
-                  {isArabic ? 'منتجات العناية بالبشرة' : 'Premium Skincare'}
-                </h1>
-                <p className="text-gray-600 text-[13px] leading-relaxed max-w-md">
-                  {isArabic 
-                    ? 'اكتشف مجموعتنا من منتجات العناية بالبشرة الفاخرة. منتجات عالية الجودة لبشرة صحية ومشرقة.'
-                    : 'Discover our collection of premium skincare products. High-quality products for healthy and radiant skin.'
-                  }
-                </p>
-              </div>
-
-              {/* Order Button */}
-              <Link href="#products">
-                <button className="btn-primary px-6">
-                  {isArabic ? 'تسوق الآن' : 'Order now'}
-                  <Image src="/images/Proceed Icon.svg" alt="proceed" width={14} height={14} />
-                </button>
-              </Link>
-            </div>
-
-            {/* Right Content - Product Image */}
-            <div className="flex justify-center">
-              <div className="relative w-full max-w-full">
-                <Image
-                  src="/images/banner.jpg"
-                  alt="Product"
-                  width={450}
-                  height={450}
-                  className="object-contain w-full h-auto"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Hero Banner */}
+      <section className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+        <Image
+          src="/images/banner.jpg"
+          alt="Hero Banner"
+          fill
+          className="object-cover"
+          priority
+        />
       </section>
 
       {/* Category Tabs */}

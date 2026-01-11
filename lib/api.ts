@@ -141,8 +141,14 @@ export const messagesApi = {
 export const bankAccountsApi = {
   getAll: () => request<any[]>('/bank-accounts'),
   
-  create: (data: any, token: string) =>
-    request<any>('/bank-accounts', { method: 'POST', body: data, token }),
+  create: (data: FormData | any, token: string, isFormData = false) =>
+    request<any>('/bank-accounts', { method: 'POST', body: data, token, isFormData }),
+  
+  update: (id: string, data: FormData | any, token: string, isFormData = false) =>
+    request<any>(`/bank-accounts/${id}`, { method: 'PUT', body: data, token, isFormData }),
+  
+  delete: (id: string, token: string) =>
+    request<void>(`/bank-accounts/${id}`, { method: 'DELETE', token }),
 }
 
 // Support API
@@ -209,6 +215,30 @@ export const procurementApi = {
     request<any>('/procurement', { method: 'POST', body: data, token }),
 }
 
+// Recipes API
+export const recipesApi = {
+  getAll: (token: string) =>
+    request<any[]>('/recipes', { token }),
+  
+  getByProductId: (productId: string) =>
+    request<{ product: any; recipes: any[] }>(`/recipes/product/${productId}`),
+  
+  getProductsWithRecipes: () =>
+    request<string[]>('/recipes/products-with-recipes'),
+  
+  checkProductHasRecipes: (productId: string) =>
+    request<{ hasRecipes: boolean; count: number }>(`/recipes/product/${productId}/check`),
+  
+  create: (data: any, token: string) =>
+    request<any>('/recipes', { method: 'POST', body: data, token }),
+  
+  update: (id: string, data: any, token: string) =>
+    request<any>(`/recipes/${id}`, { method: 'PUT', body: data, token }),
+  
+  delete: (id: string, token: string) =>
+    request<void>(`/recipes/${id}`, { method: 'DELETE', token }),
+}
+
 export default {
   auth: authApi,
   products: productsApi,
@@ -222,5 +252,6 @@ export default {
   users: usersApi,
   procurement: procurementApi,
   reports: reportsApi,
+  recipes: recipesApi,
 }
 

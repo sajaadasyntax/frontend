@@ -17,6 +17,7 @@ interface ProductCardProps {
   discount?: number
   loyaltyPointsEnabled?: boolean
   loyaltyPointsValue?: number
+  hasRecipes?: boolean
 }
 
 export default function ProductCard({ 
@@ -29,7 +30,8 @@ export default function ProductCard({
   isNew,
   discount,
   loyaltyPointsEnabled,
-  loyaltyPointsValue
+  loyaltyPointsValue,
+  hasRecipes
 }: ProductCardProps) {
   const t = useTranslations('home')
   const tc = useTranslations('common')
@@ -46,24 +48,6 @@ export default function ProductCard({
 
   return (
     <div className="product-card relative">
-      {/* Badges */}
-      {isSale && (
-        <div className="badge badge-sale">
-          <svg width="28" height="36" viewBox="0 0 28 36" className="absolute inset-0">
-            <path d="M0 0 L28 0 L28 28 L14 36 L0 28 Z" fill="currentColor" />
-          </svg>
-          <span className="relative z-10 text-[10px]">{discount ? `-${discount}%` : '-'}</span>
-        </div>
-      )}
-      {isNew && (
-        <div className="badge badge-new">
-          <svg width="28" height="36" viewBox="0 0 28 36" className="absolute inset-0">
-            <path d="M0 0 L28 0 L28 28 L14 36 L0 28 Z" fill="currentColor" />
-          </svg>
-          <span className="relative z-10">+</span>
-        </div>
-      )}
-
       {/* Product Image */}
       <Link href={`/products/${id}`}>
         <div className="flex justify-center items-center h-44 mb-3 cursor-pointer">
@@ -99,6 +83,20 @@ export default function ProductCard({
           <Image src="/images/Proceed Icon.svg" alt="proceed" width={14} height={14} />
         </button>
       </Link>
+
+      {/* Recipes Button */}
+      {hasRecipes && (
+        <a 
+          href={`/recipes/${id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 block"
+        >
+          <button className="w-full py-2 px-4 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors text-sm font-medium flex items-center justify-center gap-2">
+            📋 {locale === 'ar' ? 'عرض الوصفات' : 'View Recipes'}
+          </button>
+        </a>
+      )}
     </div>
   )
 }

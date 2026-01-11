@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { useLocaleStore } from '@/store/locale-store'
-import { productsApi, UPLOADS_URL } from '@/lib/api'
+import { productsApi, recipesApi, UPLOADS_URL } from '@/lib/api'
 import AddToCartButton from './AddToCartButton'
 
 interface Product {
@@ -26,12 +26,17 @@ interface Product {
 export default function ProductPage({ params }: { params: { id: string } }) {
   const { locale } = useLocaleStore()
   const [product, setProduct] = useState<Product | null>(null)
+  const [hasRecipes, setHasRecipes] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    productsApi.getById(params.id)
-      .then(data => {
-        setProduct(data)
+    Promise.all([
+      productsApi.getById(params.id),
+      recipesApi.checkProductHasRecipes(params.id)
+    ])
+      .then(([productData, recipesData]) => {
+        setProduct(productData)
+        setHasRecipes(recipesData.hasRecipes)
         setLoading(false)
       })
       .catch(() => {
@@ -71,24 +76,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             {/* Product Image */}
             <div className="relative">
               <div className="product-card">
-                {product.isSale && (
-                  <div className="badge badge-sale">
-                    <svg width="28" height="36" viewBox="0 0 28 36" className="absolute inset-0">
-                      <path d="M0 0 L28 0 L28 28 L14 36 L0 28 Z" fill="currentColor" />
-                    </svg>
-                    <span className="relative z-10 text-[10px]">
-                      {product.discount ? `-${product.discount}%` : '-'}
-                    </span>
-                  </div>
-                )}
-                {product.isNew && (
-                  <div className="badge badge-new" style={{ right: '0.75rem' }}>
-                    <svg width="28" height="36" viewBox="0 0 28 36" className="absolute inset-0">
-                      <path d="M0 0 L28 0 L28 28 L14 36 L0 28 Z" fill="currentColor" />
-                    </svg>
-                    <span className="relative z-10">+</span>
-                  </div>
-                )}
                 <div className="flex justify-center items-center h-72">
                   <Image
                     src={getImageSrc(product.image)}
@@ -166,6 +153,22 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   }
                 </p>
               </div>
+
+              {/* Recipes Button */}
+              {hasRecipes && (
+                <div className="pt-4">
+                  <a 
+                    href={`/recipes/${product.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <button className="w-full py-3 px-6 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium flex items-center justify-center gap-2">
+                      📋 {isArabic ? 'عرض ما يمكن صنعه بهذا المنتج' : 'View what you can make with this product'}
+                    </button>
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
