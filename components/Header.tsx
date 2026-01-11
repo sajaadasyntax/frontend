@@ -126,35 +126,40 @@ export default function Header() {
                       <p className="font-semibold text-sm text-primary">{user.name || user.phone}</p>
                       <p className="text-xs text-gray-500">{user.phone}</p>
                     </div>
-                    <Link
-                      href="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      {t('profile')}
-                    </Link>
-                    <Link
-                      href="/invoices"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      الفواتير / Invoices
-                    </Link>
-                    <Link
-                      href="/messages"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      الرسائل / Messages
-                    </Link>
-                    {user.role === 'ADMIN' && (
-                      <Link
-                        href="/admin"
-                        className="block px-4 py-2 text-sm text-primary font-medium hover:bg-gray-100"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        لوحة التحكم / Admin
-                      </Link>
+                    {user.role === 'ADMIN' ? (
+                      <>
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-primary font-medium hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          لوحة التحكم / Admin
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          {t('profile')}
+                        </Link>
+                        <Link
+                          href="/invoices"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          الفواتير / Invoices
+                        </Link>
+                        <Link
+                          href="/messages"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          الرسائل / Messages
+                        </Link>
+                      </>
                     )}
                     <hr className="my-2" />
                     <button
