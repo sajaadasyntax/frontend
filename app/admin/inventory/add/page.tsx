@@ -34,7 +34,6 @@ export default function AddProductPage() {
     descriptionEn: '',
     descriptionAr: '',
     price: '',
-    costPrice: '',
     categoryId: '',
     isNew: false,
     isSale: false,
@@ -208,19 +207,6 @@ export default function AddProductPage() {
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
               className="input-field"
               required
-              min="0"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isArabic ? 'سعر التكلفة (SDG)' : 'Cost Price (SDG)'}
-            </label>
-            <input
-              type="number"
-              value={formData.costPrice}
-              onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-              className="input-field"
               min="0"
             />
           </div>

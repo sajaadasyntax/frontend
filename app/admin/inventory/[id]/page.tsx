@@ -37,7 +37,6 @@ export default function EditProductPage() {
     descriptionEn: '',
     descriptionAr: '',
     price: '',
-    costPrice: '',
     categoryId: '',
     image: '',
     isNew: false,
@@ -69,7 +68,6 @@ export default function EditProductPage() {
         descriptionEn: product.descriptionEn || '',
         descriptionAr: product.descriptionAr || '',
         price: product.price?.toString() || '',
-        costPrice: product.costPrice?.toString() || '',
         categoryId: product.categoryId || '',
         image: product.image || '',
         isNew: product.isNew || false,
@@ -246,19 +244,6 @@ export default function EditProductPage() {
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
               className="input-field"
               required
-              min="0"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isArabic ? 'سعر التكلفة (SDG)' : 'Cost Price (SDG)'}
-            </label>
-            <input
-              type="number"
-              value={formData.costPrice}
-              onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-              className="input-field"
               min="0"
             />
           </div>
