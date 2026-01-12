@@ -72,9 +72,16 @@ export default function ProductCard({
       )}
 
       {/* Price */}
-      <p className="text-center text-gray-600 text-sm mb-3">
-        {tc('currency')} {displayPrice.toLocaleString()} {tc('perPack')}
-      </p>
+      <div className="text-center mb-3">
+        <span className="text-gray-600 text-sm">
+          {tc('currency')} {displayPrice.toLocaleString()} {tc('perUnit')}
+        </span>
+        {discount && discount > 0 && (
+          <span className="text-gray-400 line-through text-xs ml-2">
+            {tc('currency')} {price.toLocaleString()}
+          </span>
+        )}
+      </div>
 
       {/* Shop Now Button */}
       <Link href={`/products/${id}`}>

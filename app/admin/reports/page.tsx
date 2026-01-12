@@ -58,6 +58,12 @@ interface ProfitLossData {
   }
 }
 
+interface Product {
+  id: string
+  nameEn: string
+  nameAr: string
+}
+
 export default function ReportsPage() {
   const { locale } = useLocaleStore()
   const { token } = useAuthStore()
@@ -67,12 +73,57 @@ export default function ReportsPage() {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([])
   const [profitLoss, setProfitLoss] = useState<ProfitLossData | null>(null)
-  const [activeTab, setActiveTab] = useState<'products' | 'customers' | 'profit'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'customers' | 'profit' | 'single-product'>('products')
+  
+  // Single product report states
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [selectedProductId, setSelectedProductId] = useState<string>('')
+  const [dateFrom, setDateFrom] = useState<string>('')
+  const [dateTo, setDateTo] = useState<string>('')
+  const [singleProductReport, setSingleProductReport] = useState<any>(null)
+  const [loadingSingleReport, setLoadingSingleReport] = useState(false)
 
   useEffect(() => {
     if (!token) return
     fetchAllReports()
+    fetchProducts()
   }, [token])
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.enabholding.com/api'}/products`)
+      const data = await response.json()
+      setAllProducts(data)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }
+
+  const fetchSingleProductReport = async () => {
+    if (!token || !selectedProductId) {
+      toast.error(isArabic ? 'يرجى اختيار منتج' : 'Please select a product')
+      return
+    }
+    
+    setLoadingSingleReport(true)
+    try {
+      let url = `${process.env.NEXT_PUBLIC_API_URL || 'https://api.enabholding.com/api'}/reports/product/${selectedProductId}`
+      const params = new URLSearchParams()
+      if (dateFrom) params.set('from', dateFrom)
+      if (dateTo) params.set('to', dateTo)
+      if (params.toString()) url += `?${params.toString()}`
+      
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await response.json()
+      setSingleProductReport(data)
+    } catch (error) {
+      toast.error(isArabic ? 'خطأ في تحميل التقرير' : 'Error loading report')
+    } finally {
+      setLoadingSingleReport(false)
+    }
+  }
 
   const fetchAllReports = async () => {
     if (!token) return
@@ -168,7 +219,7 @@ export default function ReportsPage() {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
         <button
           onClick={() => setActiveTab('products')}
           className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
@@ -198,6 +249,16 @@ export default function ReportsPage() {
           }`}
         >
           📊 {isArabic ? 'الأرباح والخسائر' : 'Profit & Loss'}
+        </button>
+        <button
+          onClick={() => setActiveTab('single-product')}
+          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+            activeTab === 'single-product' 
+              ? 'bg-primary text-white' 
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          🔍 {isArabic ? 'تقرير منتج واحد' : 'Single Product Report'}
         </button>
       </div>
 
@@ -420,6 +481,146 @@ export default function ReportsPage() {
                   </p>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Single Product Report Tab */}
+        {activeTab === 'single-product' && (
+          <div>
+            <h2 className="text-xl font-bold text-primary mb-6">
+              {isArabic ? 'تقرير منتج واحد' : 'Single Product Report'}
+            </h2>
+            
+            {/* Filters */}
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <div className="grid md:grid-cols-4 gap-4 items-end">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isArabic ? 'المنتج' : 'Product'}
+                  </label>
+                  <select
+                    value={selectedProductId}
+                    onChange={(e) => setSelectedProductId(e.target.value)}
+                    className="select-field"
+                  >
+                    <option value="">{isArabic ? 'اختر منتج' : 'Select Product'}</option>
+                    {allProducts.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {isArabic ? p.nameAr : p.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isArabic ? 'من تاريخ' : 'From Date'}
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isArabic ? 'إلى تاريخ' : 'To Date'}
+                  </label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+                <button
+                  onClick={fetchSingleProductReport}
+                  disabled={loadingSingleReport}
+                  className="btn-primary"
+                >
+                  {loadingSingleReport 
+                    ? (isArabic ? 'جاري التحميل...' : 'Loading...') 
+                    : (isArabic ? 'عرض التقرير' : 'Show Report')
+                  }
+                </button>
+              </div>
+            </div>
+
+            {/* Report Results */}
+            {singleProductReport && (
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-blue-700">{isArabic ? 'إجمالي المبيعات' : 'Total Sales'}</p>
+                    <p className="text-2xl font-bold text-blue-800">
+                      {singleProductReport.totalQuantity || 0} {isArabic ? 'وحدة' : 'units'}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-green-700">{isArabic ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
+                    <p className="text-2xl font-bold text-green-800">
+                      SDG {(singleProductReport.totalRevenue || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-amber-50 p-4 rounded-lg">
+                    <p className="text-sm text-amber-700">{isArabic ? 'عدد الطلبات' : 'Orders Count'}</p>
+                    <p className="text-2xl font-bold text-amber-800">
+                      {singleProductReport.ordersCount || 0}
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <p className="text-sm text-purple-700">{isArabic ? 'المخزون الحالي' : 'Current Stock'}</p>
+                    <p className="text-2xl font-bold text-purple-800">
+                      {singleProductReport.currentStock || 0}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Orders List */}
+                {singleProductReport.orders && singleProductReport.orders.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-700 mb-3">
+                      {isArabic ? 'قائمة الطلبات' : 'Orders List'}
+                    </h3>
+                    <table className="w-full">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="text-left p-3">{isArabic ? 'رقم الفاتورة' : 'Invoice #'}</th>
+                          <th className="text-center p-3">{isArabic ? 'الكمية' : 'Quantity'}</th>
+                          <th className="text-center p-3">{isArabic ? 'السعر' : 'Price'}</th>
+                          <th className="text-center p-3">{isArabic ? 'التاريخ' : 'Date'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {singleProductReport.orders.map((order: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="p-3 font-mono">{order.invoiceNumber}</td>
+                            <td className="p-3 text-center">{order.quantity}</td>
+                            <td className="p-3 text-center">SDG {order.price?.toLocaleString()}</td>
+                            <td className="p-3 text-center text-gray-600">
+                              {new Date(order.date).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {singleProductReport.orders && singleProductReport.orders.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">
+                    {isArabic ? 'لا توجد طلبات لهذا المنتج في الفترة المحددة' : 'No orders for this product in the selected period'}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {!singleProductReport && (
+              <p className="text-center text-gray-500 py-12">
+                {isArabic ? 'اختر منتج وانقر على عرض التقرير' : 'Select a product and click Show Report'}
+              </p>
             )}
           </div>
         )}

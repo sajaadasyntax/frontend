@@ -25,7 +25,8 @@
     "yes": "نعم",
     "no": "لا",
     "currency": "ج.س",
-    "perPack": "/ العبوة"
+    "perPack": "/ العبوة",
+    "perUnit": "/ الوحدة"
   },
   "auth": {
     "phone": "رقم الهاتف",
@@ -42,7 +43,8 @@
     "noAccount": "ليس لديك حساب؟",
     "hasAccount": "لديك حساب بالفعل؟",
     "invalidPhone": "يرجى إدخال رقم هاتف سوداني صحيح",
-    "phoneFormat": "الصيغة: 09XXXXXXXX أو +249XXXXXXXXX"
+    "phoneFormat": "الصيغة: 09XXXXXXXX أو +249XXXXXXXXX",
+    "forgotPassword": "نسيت كلمة المرور؟"
   },
   "home": {
     "bestSeller": "الأكثر مبيعاً",

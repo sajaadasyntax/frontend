@@ -275,7 +275,7 @@ export default function AddProductPage() {
           </div>
 
           <div className="md:col-span-2 flex flex-wrap items-center gap-6">
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 group relative">
               <input
                 type="checkbox"
                 checked={formData.isNew}
@@ -283,6 +283,7 @@ export default function AddProductPage() {
                 className="w-4 h-4"
               />
               <span>{isArabic ? 'منتج جديد' : 'New Product'}</span>
+              <span className="text-gray-400 cursor-help" title={isArabic ? 'اختياري: يضيف علامة "جديد" على المنتج في المتجر' : 'Optional: Adds a "New" badge on the product in the shop'}>ⓘ</span>
             </label>
 
             <label className="flex items-center gap-2">

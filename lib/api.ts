@@ -121,6 +121,12 @@ export const couponsApi = {
   
   create: (data: any, token: string) =>
     request<any>('/coupons', { method: 'POST', body: data, token }),
+  
+  update: (id: string, data: any, token: string) =>
+    request<any>(`/coupons/${id}`, { method: 'PUT', body: data, token }),
+  
+  delete: (id: string, token: string) =>
+    request<void>(`/coupons/${id}`, { method: 'DELETE', token }),
 }
 
 // Messages API
@@ -189,6 +195,9 @@ export const usersApi = {
   
   updateLoyaltyPoints: (id: string, points: number, token: string) =>
     request<any>(`/users/${id}/loyalty`, { method: 'PUT', body: { points }, token }),
+  
+  getOrders: (id: string, token: string) =>
+    request<any[]>(`/users/${id}/orders`, { token }),
 }
 
 // Reports API

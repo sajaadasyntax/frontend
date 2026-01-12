@@ -181,13 +181,17 @@ export default function MessagesPage() {
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <div>
+                    <div className="flex items-center gap-2">
                       {message.subject && (
                         <h3 className="font-semibold text-primary">{message.subject}</h3>
                       )}
-                      {message.isBroadcast && (
+                      {message.isBroadcast ? (
                         <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                           {isArabic ? 'رسالة عامة' : 'Broadcast'}
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          {isArabic ? 'رسالة خاصة' : 'Direct Message'}
                         </span>
                       )}
                     </div>

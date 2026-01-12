@@ -75,6 +75,31 @@ export default function CouponsPage() {
     }
   }
 
+  const toggleCouponStatus = async (couponId: string, currentStatus: boolean) => {
+    if (!token) return
+
+    try {
+      await couponsApi.update(couponId, { isActive: !currentStatus }, token)
+      toast.success(isArabic ? 'تم تحديث الحالة' : 'Status updated')
+      fetchCoupons()
+    } catch {
+      toast.error(isArabic ? 'خطأ في التحديث' : 'Error updating')
+    }
+  }
+
+  const handleDelete = async (couponId: string) => {
+    if (!token) return
+    if (!confirm(isArabic ? 'هل أنت متأكد من الحذف؟' : 'Are you sure you want to delete?')) return
+
+    try {
+      await couponsApi.delete(couponId, token)
+      toast.success(isArabic ? 'تم حذف الكود' : 'Coupon deleted')
+      fetchCoupons()
+    } catch {
+      toast.error(isArabic ? 'خطأ في الحذف' : 'Error deleting')
+    }
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -213,6 +238,7 @@ export default function CouponsPage() {
                 <th className="text-center p-4">{isArabic ? 'الاستخدام' : 'Usage'}</th>
                 <th className="text-center p-4">{isArabic ? 'الانتهاء' : 'Expires'}</th>
                 <th className="text-center p-4">{isArabic ? 'الحالة' : 'Status'}</th>
+                <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -238,16 +264,27 @@ export default function CouponsPage() {
                     }
                   </td>
                   <td className="text-center p-4">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      coupon.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <button
+                      onClick={() => toggleCouponStatus(coupon.id, coupon.isActive)}
+                      className={`px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${
+                        coupon.isActive 
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                          : 'bg-red-100 text-red-800 hover:bg-red-200'
+                      }`}
+                    >
                       {coupon.isActive 
                         ? (isArabic ? 'نشط' : 'Active')
                         : (isArabic ? 'غير نشط' : 'Inactive')
                       }
-                    </span>
+                    </button>
+                  </td>
+                  <td className="text-center p-4">
+                    <button
+                      onClick={() => handleDelete(coupon.id)}
+                      className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    >
+                      {isArabic ? 'حذف' : 'Delete'}
+                    </button>
                   </td>
                 </tr>
               ))}

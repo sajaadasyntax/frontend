@@ -84,7 +84,6 @@ export default function AdminInvoicesPage() {
     { value: 'PENDING', labelEn: 'Pending', labelAr: 'قيد الانتظار' },
     { value: 'CONFIRMED', labelEn: 'Confirmed', labelAr: 'مؤكد' },
     { value: 'PROCESSING', labelEn: 'Processing', labelAr: 'قيد المعالجة' },
-    { value: 'SHIPPED', labelEn: 'Shipped', labelAr: 'تم الشحن' },
     { value: 'DELIVERED', labelEn: 'Delivered', labelAr: 'تم التسليم' },
     { value: 'CANCELLED', labelEn: 'Cancelled', labelAr: 'ملغي' }
   ]

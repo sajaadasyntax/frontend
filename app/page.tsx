@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
 import { useLocaleStore } from '@/store/locale-store'
 import { productsApi, categoriesApi, recipesApi } from '@/lib/api'
@@ -36,6 +37,8 @@ interface Category {
 export default function HomePage() {
   const { locale } = useLocaleStore()
   const isArabic = locale === 'ar'
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('search') || ''
   
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -45,7 +48,7 @@ export default function HomePage() {
 
   useEffect(() => {
     Promise.all([
-      productsApi.getAll(),
+      productsApi.getAll(searchQuery ? { search: searchQuery } : undefined),
       categoriesApi.getAll(),
       recipesApi.getProductsWithRecipes()
     ])
@@ -56,7 +59,7 @@ export default function HomePage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [searchQuery])
 
   // Get all category IDs including children for filtering
   const getAllCategoryIds = (category: Category): string[] => {

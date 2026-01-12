@@ -17,6 +17,7 @@ export default function Header() {
   const cartItemCount = useCartStore((state) => state.getItemCount())
   const { user, isAuthenticated, logout } = useAuthStore()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Redirect admin users to admin panel (they shouldn't access user pages)
   useEffect(() => {
@@ -37,8 +38,21 @@ export default function Header() {
     window.location.href = '/'
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch(e as unknown as React.FormEvent)
+    }
+  }
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
       <div className="max-w-7xl mx-auto py-3 flex items-center justify-between">
         {/* Logo and Navigation */}
         <div className="flex items-center gap-10">
@@ -64,20 +78,25 @@ export default function Header() {
         {/* Search and Icons */}
         <div className="flex items-center gap-4">
           {/* Search Bar */}
-          <div className="relative hidden md:block">
+          <form onSubmit={handleSearch} className="relative hidden md:block">
             <input
               type="text"
               placeholder={t('search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="border border-gray-300 rounded-full px-4 py-1.5 pr-10 w-60 text-sm focus:outline-none focus:border-secondary"
             />
-            <Image
-              src="/images/Search Icon.svg"
-              alt="Search"
-              width={18}
-              height={18}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
-            />
-          </div>
+            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <Image
+                src="/images/Search Icon.svg"
+                alt="Search"
+                width={18}
+                height={18}
+                className="cursor-pointer"
+              />
+            </button>
+          </form>
 
           {/* Language Toggle */}
           <button 

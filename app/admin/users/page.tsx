@@ -22,6 +22,15 @@ interface User {
   }
 }
 
+interface Order {
+  id: string
+  invoiceNumber: string
+  status: string
+  paymentStatus: string
+  total: number
+  createdAt: string
+}
+
 const initialFormState = {
   phone: '',
   password: '',
@@ -46,6 +55,10 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [formData, setFormData] = useState(initialFormState)
   const [saving, setSaving] = useState(false)
+  const [showOrdersModal, setShowOrdersModal] = useState(false)
+  const [selectedUserOrders, setSelectedUserOrders] = useState<Order[]>([])
+  const [selectedUserName, setSelectedUserName] = useState('')
+  const [loadingOrders, setLoadingOrders] = useState(false)
 
   useEffect(() => {
     if (!token) return
@@ -134,6 +147,24 @@ export default function UsersPage() {
       fetchUsers()
     } catch (error: any) {
       toast.error(error.message || (isArabic ? 'خطأ في الحذف' : 'Error deleting'))
+    }
+  }
+
+  const viewOrderHistory = async (user: User) => {
+    if (!token) return
+    
+    setSelectedUserName(user.name || user.phone)
+    setShowOrdersModal(true)
+    setLoadingOrders(true)
+    
+    try {
+      const orders = await usersApi.getOrders(user.id, token)
+      setSelectedUserOrders(orders)
+    } catch {
+      toast.error(isArabic ? 'خطأ في تحميل الطلبات' : 'Error loading orders')
+      setSelectedUserOrders([])
+    } finally {
+      setLoadingOrders(false)
     }
   }
 
@@ -368,6 +399,13 @@ export default function UsersPage() {
                   <td className="text-center p-4">
                     <div className="flex justify-center gap-2">
                       <button
+                        onClick={() => viewOrderHistory(user)}
+                        className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                        title={isArabic ? 'سجل الطلبات' : 'Order History'}
+                      >
+                        📋
+                      </button>
+                      <button
                         onClick={() => openEditModal(user)}
                         className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                       >
@@ -391,6 +429,87 @@ export default function UsersPage() {
               {isArabic ? 'لا يوجد مستخدمين' : 'No users found'}
             </p>
           )}
+        </div>
+      )}
+
+      {/* Order History Modal */}
+      {showOrdersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-primary">
+                {isArabic ? `سجل طلبات ${selectedUserName}` : `Order History - ${selectedUserName}`}
+              </h2>
+              <button
+                onClick={() => setShowOrdersModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {loadingOrders ? (
+              <p className="text-center py-8 text-gray-600">
+                {isArabic ? 'جاري التحميل...' : 'Loading...'}
+              </p>
+            ) : selectedUserOrders.length === 0 ? (
+              <p className="text-center py-8 text-gray-600">
+                {isArabic ? 'لا توجد طلبات' : 'No orders found'}
+              </p>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="text-left p-3">{isArabic ? 'رقم الفاتورة' : 'Invoice #'}</th>
+                    <th className="text-center p-3">{isArabic ? 'حالة الطلب' : 'Status'}</th>
+                    <th className="text-center p-3">{isArabic ? 'حالة الدفع' : 'Payment'}</th>
+                    <th className="text-center p-3">{isArabic ? 'المبلغ' : 'Amount'}</th>
+                    <th className="text-center p-3">{isArabic ? 'التاريخ' : 'Date'}</th>
+                    <th className="text-center p-3">{isArabic ? 'عرض' : 'View'}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {selectedUserOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50">
+                      <td className="p-3 font-mono font-semibold text-primary">{order.invoiceNumber}</td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                          order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          order.paymentStatus === 'VERIFIED' ? 'bg-green-100 text-green-800' :
+                          order.paymentStatus === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {order.paymentStatus}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center font-semibold">SDG {order.total.toLocaleString()}</td>
+                      <td className="p-3 text-center text-gray-600">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-3 text-center">
+                        <a
+                          href={`/admin/invoices/${order.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          👁
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -60,7 +60,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const name = isArabic ? product.nameAr : product.nameEn
   const description = isArabic ? product.descriptionAr : product.descriptionEn
   const currency = isArabic ? 'ج.س' : 'SDG'
-  const perPack = isArabic ? '/ العبوة' : '/ Pack'
+  const perUnit = isArabic ? '/ الوحدة' : '/ Unit'
+  
+  // Calculate display price (with discount if applicable)
+  const displayPrice = product.discount && product.discount > 0 
+    ? product.price - (product.price * product.discount / 100) 
+    : product.price
 
   const getImageSrc = (image: string) => {
     if (!image) return '/images/product-tube.png'
@@ -92,9 +97,21 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <div className="space-y-5">
               <div>
                 <h1 className="text-[30px] font-bold text-primary mb-1">{name}</h1>
-                <p className="text-gray-600 font-semibold text-sm">
-                  {currency} {product.price.toLocaleString()} {perPack}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-gray-600 font-semibold text-sm">
+                    {currency} {displayPrice.toLocaleString()} {perUnit}
+                  </p>
+                  {product.discount && product.discount > 0 && (
+                    <span className="text-gray-400 line-through text-sm">
+                      {currency} {product.price.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                {product.discount && product.discount > 0 && (
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded">
+                    -{product.discount}% {isArabic ? 'خصم' : 'OFF'}
+                  </span>
+                )}
               </div>
 
               <AddToCartButton 
@@ -102,7 +119,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   id: product.id,
                   nameEn: product.nameEn,
                   nameAr: product.nameAr,
-                  price: product.price,
+                  price: displayPrice,
                   image: product.image || '/images/product-tube.png'
                 }}
                 locale={locale}

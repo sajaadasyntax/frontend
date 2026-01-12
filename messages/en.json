@@ -25,7 +25,8 @@
     "yes": "Yes",
     "no": "No",
     "currency": "SDG",
-    "perPack": "/ Pack"
+    "perPack": "/ Pack",
+    "perUnit": "/ Unit"
   },
   "auth": {
     "phone": "Phone Number",
@@ -42,7 +43,8 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "invalidPhone": "Please enter a valid Sudanese phone number",
-    "phoneFormat": "Format: 09XXXXXXXX or +249XXXXXXXXX"
+    "phoneFormat": "Format: 09XXXXXXXX or +249XXXXXXXXX",
+    "forgotPassword": "Forgot password?"
   },
   "home": {
     "bestSeller": "BEST SELLER",

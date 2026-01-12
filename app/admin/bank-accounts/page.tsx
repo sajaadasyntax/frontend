@@ -37,6 +37,8 @@ export default function BankAccountsPage() {
     branchAr: '',
     image: ''
   })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   useEffect(() => {
     fetchBankAccounts()
@@ -64,6 +66,8 @@ export default function BankAccountsPage() {
       branchAr: '',
       image: ''
     })
+    setImageFile(null)
+    setImagePreview(null)
     setShowModal(true)
   }
 
@@ -78,7 +82,17 @@ export default function BankAccountsPage() {
       branchAr: account.branchAr || '',
       image: account.image || ''
     })
+    setImageFile(null)
+    setImagePreview(account.image ? getImageSrc(account.image) : null)
     setShowModal(true)
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,14 +100,36 @@ export default function BankAccountsPage() {
     if (!token) return
 
     try {
-      if (editingAccount) {
-        await bankAccountsApi.update(editingAccount.id, formData, token)
-        toast.success(isArabic ? 'تم تحديث الحساب البنكي' : 'Bank account updated')
+      // Use FormData if we have an image file to upload
+      if (imageFile) {
+        const formDataToSend = new FormData()
+        formDataToSend.append('bankNameEn', formData.bankNameEn)
+        formDataToSend.append('bankNameAr', formData.bankNameAr)
+        formDataToSend.append('accountName', formData.accountName)
+        formDataToSend.append('accountNumber', formData.accountNumber)
+        formDataToSend.append('branchEn', formData.branchEn)
+        formDataToSend.append('branchAr', formData.branchAr)
+        formDataToSend.append('image', imageFile)
+
+        if (editingAccount) {
+          await bankAccountsApi.update(editingAccount.id, formDataToSend, token, true)
+          toast.success(isArabic ? 'تم تحديث الحساب البنكي' : 'Bank account updated')
+        } else {
+          await bankAccountsApi.create(formDataToSend, token, true)
+          toast.success(isArabic ? 'تمت إضافة الحساب البنكي' : 'Bank account added')
+        }
       } else {
-        await bankAccountsApi.create(formData, token)
-        toast.success(isArabic ? 'تمت إضافة الحساب البنكي' : 'Bank account added')
+        if (editingAccount) {
+          await bankAccountsApi.update(editingAccount.id, formData, token)
+          toast.success(isArabic ? 'تم تحديث الحساب البنكي' : 'Bank account updated')
+        } else {
+          await bankAccountsApi.create(formData, token)
+          toast.success(isArabic ? 'تمت إضافة الحساب البنكي' : 'Bank account added')
+        }
       }
       setShowModal(false)
+      setImageFile(null)
+      setImagePreview(null)
       fetchBankAccounts()
     } catch (error) {
       toast.error(isArabic ? 'حدث خطأ' : 'An error occurred')
@@ -281,20 +317,48 @@ export default function BankAccountsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {isArabic ? 'رابط صورة البطاقة البنكية' : 'Bank Card Image URL'}
+                  {isArabic ? 'صورة البطاقة البنكية' : 'Bank Card Image'}
                 </label>
-                <input
-                  type="text"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="/images/bank-card.png"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {isArabic 
-                    ? 'أدخل رابط الصورة أو مسار الملف المحلي' 
-                    : 'Enter image URL or local file path'}
-                </p>
+                <div className="flex items-start gap-4">
+                  {imagePreview && (
+                    <div className="w-24 h-24 rounded-lg overflow-hidden border">
+                      <Image
+                        src={imagePreview}
+                        alt="Preview"
+                        width={96}
+                        height={96}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {isArabic 
+                        ? 'PNG, JPG, WEBP حتى 5MB' 
+                        : 'PNG, JPG, WEBP up to 5MB'}
+                    </p>
+                    {!imageFile && (
+                      <div className="mt-2">
+                        <label className="text-xs text-gray-500">
+                          {isArabic ? 'أو أدخل رابط الصورة' : 'Or enter image URL'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.image}
+                          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                          className="w-full px-3 py-1 border rounded text-sm mt-1"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
