@@ -44,20 +44,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 md:py-12 px-3 md:px-4">
       <div className="max-w-md w-full">
-        <div className="card">
+        <div className="card p-4 md:p-6">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 md:mb-6">
             <Image
               src="/images/Logo Mark.svg"
               alt="Logo"
               width={60}
               height={60}
+              className="w-12 h-12 md:w-[60px] md:h-[60px]"
             />
           </div>
 
-          <h1 className="text-2xl font-bold text-primary text-center mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-primary text-center mb-4 md:mb-6">
             {t('loginTitle')}
           </h1>
 

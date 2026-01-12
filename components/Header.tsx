@@ -17,6 +17,7 @@ export default function Header() {
   const cartItemCount = useCartStore((state) => state.getItemCount())
   const { user, isAuthenticated, logout } = useAuthStore()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   // Redirect admin users to admin panel (they shouldn't access user pages)
@@ -52,20 +53,20 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-      <div className="max-w-7xl mx-auto py-3 flex items-center justify-between">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 px-3 md:px-[5%]">
+      <div className="max-w-7xl mx-auto py-2 md:py-3 flex items-center justify-between">
         {/* Logo and Navigation */}
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-4 md:gap-10">
           <Link href="/">
             <Image
               src="/images/Logo Mark.svg"
               alt="Mayan Logo"
               width={38}
               height={38}
-              className="cursor-pointer"
+              className="cursor-pointer w-8 h-8 md:w-[38px] md:h-[38px]"
             />
           </Link>
-          <nav className="flex gap-7">
+          <nav className="hidden md:flex gap-7">
             <Link href="/" className="text-gray-700 hover:text-primary font-medium text-[15px]">
               {t('shop')}
             </Link>
@@ -76,8 +77,22 @@ export default function Header() {
         </div>
 
         {/* Search and Icons */}
-        <div className="flex items-center gap-4">
-          {/* Search Bar */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Mobile Search Toggle */}
+          <button 
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+            className="md:hidden p-1"
+          >
+            <Image
+              src="/images/Search Icon.svg"
+              alt="Search"
+              width={20}
+              height={20}
+              className="cursor-pointer"
+            />
+          </button>
+
+          {/* Desktop Search Bar */}
           <form onSubmit={handleSearch} className="relative hidden md:block">
             <input
               type="text"
@@ -101,7 +116,7 @@ export default function Header() {
           {/* Language Toggle */}
           <button 
             onClick={toggleLocale}
-            className="text-gray-700 font-medium text-sm hover:text-primary transition-colors"
+            className="text-gray-700 font-medium text-xs md:text-sm hover:text-primary transition-colors"
           >
             {locale === 'en' ? 'عربي' : 'En'}
           </button>
@@ -113,10 +128,10 @@ export default function Header() {
               alt="Cart"
               width={22}
               height={22}
-              className="cursor-pointer"
+              className="cursor-pointer w-5 h-5 md:w-[22px] md:h-[22px]"
             />
             {cartItemCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] md:text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
                 {cartItemCount}
               </span>
             )}
@@ -133,7 +148,7 @@ export default function Header() {
                 alt="User"
                 width={22}
                 height={22}
-                className="cursor-pointer"
+                className="cursor-pointer w-5 h-5 md:w-[22px] md:h-[22px]"
               />
             </button>
 
@@ -219,6 +234,31 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Search Bar */}
+      {showMobileSearch && (
+        <div className="md:hidden px-3 pb-3">
+          <form onSubmit={(e) => { handleSearch(e); setShowMobileSearch(false); }} className="relative">
+            <input
+              type="text"
+              placeholder={t('search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-gray-300 rounded-full px-4 py-2 pr-10 w-full text-sm focus:outline-none focus:border-secondary"
+              autoFocus
+            />
+            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <Image
+                src="/images/Search Icon.svg"
+                alt="Search"
+                width={18}
+                height={18}
+                className="cursor-pointer"
+              />
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   )
 }

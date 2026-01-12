@@ -74,35 +74,35 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-14" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+    <div className="min-h-screen bg-gray-50 py-4 md:py-14 px-3 md:px-[5%]">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md p-10">
-          <div className="grid md:grid-cols-2 gap-10">
+        <div className="bg-white rounded-xl shadow-md p-4 md:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10">
             {/* Product Image */}
             <div className="relative">
-              <div className="product-card">
-                <div className="flex justify-center items-center h-72">
+              <div className="product-card p-4 md:p-5">
+                <div className="flex justify-center items-center h-48 md:h-72">
                   <Image
                     src={getImageSrc(product.image)}
                     alt={name}
                     width={140}
                     height={210}
-                    className="object-contain"
+                    className="object-contain w-28 h-40 md:w-[140px] md:h-[210px]"
                   />
                 </div>
               </div>
             </div>
 
             {/* Product Details */}
-            <div className="space-y-5">
+            <div className="space-y-3 md:space-y-5">
               <div>
-                <h1 className="text-[30px] font-bold text-primary mb-1">{name}</h1>
-                <div className="flex items-center gap-2">
+                <h1 className="text-xl md:text-[30px] font-bold text-primary mb-1">{name}</h1>
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-gray-600 font-semibold text-sm">
                     {currency} {displayPrice.toLocaleString()} {perUnit}
                   </p>
                   {product.discount && product.discount > 0 && (
-                    <span className="text-gray-400 line-through text-sm">
+                    <span className="text-gray-400 line-through text-xs md:text-sm">
                       {currency} {product.price.toLocaleString()}
                     </span>
                   )}
@@ -127,10 +127,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
               {/* Description */}
               <div>
-                <h3 className="font-bold text-primary mb-2 text-sm">
+                <h3 className="font-bold text-primary mb-1 md:mb-2 text-sm">
                   {isArabic ? 'الوصف:' : 'Description:'}
                 </h3>
-                <p className="text-gray-600 text-[13px] leading-relaxed">
+                <p className="text-gray-600 text-xs md:text-[13px] leading-relaxed">
                   {description || (isArabic 
                     ? 'منتج عالي الجودة للعناية بالبشرة. يساعد على تحسين مظهر البشرة وترطيبها.'
                     : 'High-quality skincare product. Helps improve skin appearance and hydration.'
@@ -140,17 +140,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
               {/* Loyalty Points Badge */}
               {product.loyaltyPointsEnabled && product.loyaltyPointsValue > 0 && (
-                <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                <div className="bg-amber-50 p-2 md:p-3 rounded-lg border border-amber-200">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">⭐</span>
+                    <span className="text-xl md:text-2xl">⭐</span>
                     <div>
-                      <p className="font-semibold text-amber-800">
+                      <p className="font-semibold text-amber-800 text-sm md:text-base">
                         {isArabic 
                           ? `اكسب ${product.loyaltyPointsValue} نقطة` 
                           : `Earn ${product.loyaltyPointsValue} points`
                         }
                       </p>
-                      <p className="text-xs text-amber-700">
+                      <p className="text-[10px] md:text-xs text-amber-700">
                         {isArabic 
                           ? 'عند شراء هذا المنتج' 
                           : 'When you purchase this product'
@@ -162,8 +162,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               )}
 
               {/* Stock Status */}
-              <div className="pt-4 border-t border-gray-200">
-                <p className={`text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="pt-2 md:pt-4 border-t border-gray-200">
+                <p className={`text-xs md:text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {product.stock > 0 
                     ? (isArabic ? `متوفر (${product.stock} في المخزون)` : `In Stock (${product.stock} available)`)
                     : (isArabic ? 'غير متوفر' : 'Out of Stock')
@@ -173,15 +173,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
               {/* Recipes Button */}
               {hasRecipes && (
-                <div className="pt-4">
+                <div className="pt-2 md:pt-4">
                   <a 
                     href={`/recipes/${product.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block"
                   >
-                    <button className="w-full py-3 px-6 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium flex items-center justify-center gap-2">
-                      📋 {isArabic ? 'عرض ما يمكن صنعه بهذا المنتج' : 'View what you can make with this product'}
+                    <button className="w-full py-2 md:py-3 px-4 md:px-6 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium flex items-center justify-center gap-2 text-sm md:text-base">
+                      📋 {isArabic ? 'عرض الوصفات' : 'View Recipes'}
                     </button>
                   </a>
                 </div>

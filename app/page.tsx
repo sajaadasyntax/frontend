@@ -90,18 +90,18 @@ export default function HomePage() {
         {/* Show category section if it has direct products */}
         {hasDirectProducts && (
           <section 
-            className={`py-14 ${(bgIndex + level) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+            className={`py-6 md:py-14 ${(bgIndex + level) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
           >
             <div className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4 md:mb-6">
                 {level > 0 && (
                   <span className="text-gray-400 text-sm">└</span>
                 )}
-                <h2 className={`section-title ${level > 0 ? 'text-xl' : ''}`}>
+                <h2 className={`section-title text-lg md:text-[28px] mb-0 ${level > 0 ? 'md:text-xl' : ''}`}>
                   {categoryName.toUpperCase()}
                 </h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-5">
                 {categoryProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -125,9 +125,9 @@ export default function HomePage() {
 
         {/* Render parent category header if it only has subcategories */}
         {!hasDirectProducts && hasChildren && (
-          <section className={`py-8 ${(bgIndex + level) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+          <section className={`py-4 md:py-8 ${(bgIndex + level) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
             <div className="max-w-7xl mx-auto">
-              <h2 className="section-title text-primary border-b-2 border-primary pb-2 mb-2">
+              <h2 className="section-title text-lg md:text-[28px] text-primary border-b-2 border-primary pb-2 mb-2">
                 {categoryName.toUpperCase()}
               </h2>
             </div>
@@ -147,12 +147,12 @@ export default function HomePage() {
     if (categories.length === 0) return null
 
     return (
-      <div className="bg-white py-4 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap gap-2 justify-center">
+      <div className="bg-white py-3 md:py-4 sticky top-[60px] md:top-[64px] z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-2">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center overflow-x-auto pb-1">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === null 
                   ? 'bg-primary text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -164,7 +164,7 @@ export default function HomePage() {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   selectedCategory === category.id 
                     ? 'bg-primary text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -190,9 +190,9 @@ export default function HomePage() {
     : categories
 
   return (
-    <div className="min-h-screen bg-white" style={{ marginLeft: '5%', marginRight: '5%' }}>
+    <div className="min-h-screen bg-white px-3 md:px-[5%]">
       {/* Hero Banner */}
-      <section className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+      <section className="relative w-full h-[200px] sm:h-[300px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-lg md:rounded-none">
         <Image
           src="/images/banner.jpg"
           alt="Hero Banner"
@@ -216,12 +216,12 @@ export default function HomePage() {
         ) : (
           <>
             {/* Default sections if no categories */}
-            <section className="py-14 bg-gray-50">
+            <section className="py-6 md:py-14 bg-gray-50">
               <div className="max-w-7xl mx-auto">
-                <h2 className="section-title">
+                <h2 className="section-title text-lg md:text-[28px]">
                   {isArabic ? 'مستحضرات التفتيح' : 'WHITENING AGENT'}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-5">
                   {[1,2,3,4].map((i) => (
                     <ProductCard
                       key={i}
@@ -237,12 +237,12 @@ export default function HomePage() {
               </div>
             </section>
 
-            <section className="py-14 bg-white">
+            <section className="py-6 md:py-14 bg-white">
               <div className="max-w-7xl mx-auto">
-                <h2 className="section-title">
+                <h2 className="section-title text-lg md:text-[28px]">
                   {isArabic ? 'مستحضرات التقشير' : 'PEELING AGENT'}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-5">
                   {[5,6,7,8].map((i) => (
                     <ProductCard
                       key={i}
