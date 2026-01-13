@@ -35,9 +35,6 @@ export default function AddProductPage() {
     descriptionAr: '',
     price: '',
     categoryId: '',
-    isNew: false,
-    isSale: false,
-    discount: '',
     loyaltyPointsEnabled: false,
     loyaltyPointsValue: '0'
   })
@@ -273,45 +270,6 @@ export default function AddProductPage() {
               }
             </p>
           </div>
-
-          <div className="md:col-span-2 flex flex-wrap items-center gap-6">
-            <label className="flex items-center gap-2 group relative">
-              <input
-                type="checkbox"
-                checked={formData.isNew}
-                onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
-                className="w-4 h-4"
-              />
-              <span>{isArabic ? 'منتج جديد' : 'New Product'}</span>
-              <span className="text-gray-400 cursor-help" title={isArabic ? 'اختياري: يضيف علامة "جديد" على المنتج في المتجر' : 'Optional: Adds a "New" badge on the product in the shop'}>ⓘ</span>
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.isSale}
-                onChange={(e) => setFormData({ ...formData, isSale: e.target.checked })}
-                className="w-4 h-4"
-              />
-              <span>{isArabic ? 'عرض خاص' : 'On Sale'}</span>
-            </label>
-          </div>
-
-          {formData.isSale && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {isArabic ? 'نسبة الخصم %' : 'Discount %'}
-              </label>
-              <input
-                type="number"
-                value={formData.discount}
-                onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                className="input-field"
-                min="0"
-                max="100"
-              />
-            </div>
-          )}
         </div>
 
         <div className="flex gap-4 mt-8">

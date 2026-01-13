@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
 import { useLocaleStore } from '@/store/locale-store'
 import { useAuthStore } from '@/store/auth-store'
 import { messagesApi, usersApi } from '@/lib/api'
@@ -14,8 +13,10 @@ interface Message {
   isRead: boolean
   isBroadcast: boolean
   createdAt: string
-  sender?: { name: string; phone: string }
-  receiver?: { name: string; phone: string }
+  senderId: string
+  receiverId: string | null
+  sender?: { id: string; name: string; phone: string; role: string }
+  receiver?: { id: string; name: string; phone: string }
 }
 
 interface User {
@@ -24,141 +25,196 @@ interface User {
   phone: string
 }
 
+interface Conversation {
+  id: string
+  name: string
+  phone: string
+  lastMessage: string
+  lastMessageTime: string
+  unreadCount: number
+}
+
 export default function AdminMessagesPage() {
-  const searchParams = useSearchParams()
-  const showBroadcast = searchParams.get('compose') === 'broadcast'
   const { locale } = useLocaleStore()
-  const { token } = useAuthStore()
+  const { token, user: currentUser } = useAuthStore()
   const isArabic = locale === 'ar'
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const [messages, setMessages] = useState<Message[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showCompose, setShowCompose] = useState(showBroadcast)
-  const [messageType, setMessageType] = useState<'single' | 'broadcast'>('broadcast')
-  const [newMessage, setNewMessage] = useState({
-    subject: '',
-    content: '',
-    receiverId: '',
-    isBroadcast: true
-  })
+  const [newMessage, setNewMessage] = useState('')
+  const [showBroadcast, setShowBroadcast] = useState(false)
+  const [broadcastMessage, setBroadcastMessage] = useState({ subject: '', content: '' })
 
   useEffect(() => {
     if (!token) return
-    fetchMessages()
-    fetchUsers()
+    fetchData()
   }, [token])
 
-  const fetchMessages = async () => {
+  useEffect(() => {
+    if (selectedUser) {
+      scrollToBottom()
+    }
+  }, [messages, selectedUser])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const fetchData = async () => {
     if (!token) return
     
+    setLoading(true)
     try {
-      const data = await messagesApi.getAll(token)
-      setMessages(data)
+      const [messagesData, usersData] = await Promise.all([
+        messagesApi.getAll(token),
+        usersApi.getAll(token)
+      ])
+      
+      setMessages(messagesData)
+      
+      // Filter to only regular users
+      const regularUsers = usersData.filter((u: User & { role?: string }) => u.role !== 'ADMIN')
+      setUsers(regularUsers)
+      
+      // Build conversations list
+      const convMap = new Map<string, Conversation>()
+      messagesData.forEach((msg: Message) => {
+        // Get the other party in the conversation
+        let userId: string
+        let userName: string
+        let userPhone: string
+        
+        if (msg.sender?.role !== 'ADMIN') {
+          userId = msg.senderId
+          userName = msg.sender?.name || ''
+          userPhone = msg.sender?.phone || ''
+        } else if (msg.receiver) {
+          userId = msg.receiverId!
+          userName = msg.receiver.name
+          userPhone = msg.receiver.phone
+        } else {
+          return // Skip broadcast messages for conversation list
+        }
+        
+        if (!convMap.has(userId)) {
+          convMap.set(userId, {
+            id: userId,
+            name: userName,
+            phone: userPhone,
+            lastMessage: msg.content,
+            lastMessageTime: msg.createdAt,
+            unreadCount: 0
+          })
+        } else {
+          const existing = convMap.get(userId)!
+          if (new Date(msg.createdAt) > new Date(existing.lastMessageTime)) {
+            existing.lastMessage = msg.content
+            existing.lastMessageTime = msg.createdAt
+          }
+        }
+        
+        if (!msg.isRead && msg.sender?.role !== 'ADMIN') {
+          const conv = convMap.get(userId)!
+          conv.unreadCount++
+        }
+      })
+      
+      const sortedConversations = Array.from(convMap.values()).sort(
+        (a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+      )
+      
+      setConversations(sortedConversations)
     } catch {
-      toast.error('Error loading messages')
+      toast.error('Error loading data')
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchUsers = async () => {
-    if (!token) return
-    
-    try {
-      const data = await usersApi.getAll(token)
-      setUsers(data)
-    } catch {}
+  const handleSelectConversation = (conv: Conversation) => {
+    const user = users.find(u => u.id === conv.id) || { id: conv.id, name: conv.name, phone: conv.phone }
+    setSelectedUser(user)
   }
 
-  const handleSendMessage = async () => {
-    if (!newMessage.content || !token) {
+  const getConversationMessages = () => {
+    if (!selectedUser) return []
+    return messages
+      .filter(m => 
+        m.senderId === selectedUser.id || 
+        m.receiverId === selectedUser.id ||
+        (m.isBroadcast && m.sender?.role === 'ADMIN')
+      )
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  }
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage.trim() || !token || !selectedUser) return
+
+    try {
+      await messagesApi.create({
+        content: newMessage,
+        subject: '',
+        receiverId: selectedUser.id,
+        isBroadcast: false
+      }, token)
+      
+      setNewMessage('')
+      fetchData()
+    } catch {
+      toast.error(isArabic ? 'خطأ في إرسال الرسالة' : 'Error sending message')
+    }
+  }
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastMessage.content || !token) {
       toast.error(isArabic ? 'يرجى إدخال الرسالة' : 'Please enter a message')
       return
     }
 
     try {
       await messagesApi.create({
-        ...newMessage,
-        isBroadcast: messageType === 'broadcast'
+        ...broadcastMessage,
+        isBroadcast: true
       }, token)
 
       toast.success(isArabic ? 'تم إرسال الرسالة بنجاح' : 'Message sent successfully')
-      setShowCompose(false)
-      setNewMessage({ subject: '', content: '', receiverId: '', isBroadcast: true })
-      fetchMessages()
+      setShowBroadcast(false)
+      setBroadcastMessage({ subject: '', content: '' })
+      fetchData()
     } catch {
       toast.error(isArabic ? 'خطأ في إرسال الرسالة' : 'Error sending message')
     }
   }
 
+  const conversationMessages = getConversationMessages()
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-primary">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-primary">
           {isArabic ? 'الرسائل' : 'Messages'}
         </h1>
         <button
-          onClick={() => setShowCompose(true)}
+          onClick={() => setShowBroadcast(true)}
           className="btn-primary"
         >
-          📢 {isArabic ? 'إرسال رسالة' : 'Send Message'}
+          📢 {isArabic ? 'رسالة جماعية' : 'Broadcast'}
         </button>
       </div>
 
-      {/* Compose Modal */}
-      {showCompose && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4">
+      {/* Broadcast Modal */}
+      {showBroadcast && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-4 md:p-6 w-full max-w-lg">
             <h2 className="text-xl font-bold text-primary mb-4">
-              {isArabic ? 'إرسال رسالة جديدة' : 'Send New Message'}
+              {isArabic ? 'رسالة جماعية لجميع المستخدمين' : 'Broadcast to All Users'}
             </h2>
             
-            {/* Message Type Toggle */}
-            <div className="flex gap-4 mb-4">
-              <button
-                onClick={() => setMessageType('broadcast')}
-                className={`flex-1 py-2 rounded-lg transition-colors ${
-                  messageType === 'broadcast' 
-                    ? 'bg-primary text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                📢 {isArabic ? 'رسالة جماعية' : 'Broadcast'}
-              </button>
-              <button
-                onClick={() => setMessageType('single')}
-                className={`flex-1 py-2 rounded-lg transition-colors ${
-                  messageType === 'single' 
-                    ? 'bg-primary text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                👤 {isArabic ? 'رسالة فردية' : 'Single User'}
-              </button>
-            </div>
-
-            {messageType === 'single' && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {isArabic ? 'إلى' : 'To'}
-                </label>
-                <select
-                  value={newMessage.receiverId}
-                  onChange={(e) => setNewMessage({ ...newMessage, receiverId: e.target.value })}
-                  className="select-field"
-                  required
-                >
-                  <option value="">{isArabic ? 'اختر المستخدم' : 'Select User'}</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.phone}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -166,8 +222,8 @@ export default function AdminMessagesPage() {
                 </label>
                 <input
                   type="text"
-                  value={newMessage.subject}
-                  onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })}
+                  value={broadcastMessage.subject}
+                  onChange={(e) => setBroadcastMessage({ ...broadcastMessage, subject: e.target.value })}
                   className="input-field"
                 />
               </div>
@@ -176,8 +232,8 @@ export default function AdminMessagesPage() {
                   {isArabic ? 'الرسالة' : 'Message'}
                 </label>
                 <textarea
-                  value={newMessage.content}
-                  onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
+                  value={broadcastMessage.content}
+                  onChange={(e) => setBroadcastMessage({ ...broadcastMessage, content: e.target.value })}
                   className="input-field h-32"
                   required
                 />
@@ -186,59 +242,169 @@ export default function AdminMessagesPage() {
 
             <div className="flex gap-4 mt-6">
               <button
-                onClick={() => setShowCompose(false)}
+                onClick={() => setShowBroadcast(false)}
                 className="btn-outline flex-1"
               >
                 {isArabic ? 'إلغاء' : 'Cancel'}
               </button>
               <button
-                onClick={handleSendMessage}
+                onClick={handleSendBroadcast}
                 className="btn-primary flex-1"
               >
-                {isArabic ? 'إرسال' : 'Send'}
+                {isArabic ? 'إرسال للجميع' : 'Send to All'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Messages List */}
       {loading ? (
         <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
-      ) : messages.length === 0 ? (
-        <p className="text-center text-gray-600 py-8">
-          {isArabic ? 'لا توجد رسائل' : 'No messages'}
-        </p>
       ) : (
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className="bg-white rounded-xl shadow-md p-6"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  {message.subject && (
-                    <h3 className="font-semibold text-primary">{message.subject}</h3>
-                  )}
-                  {message.isBroadcast && (
-                    <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                      {isArabic ? 'رسالة جماعية' : 'Broadcast'}
-                    </span>
-                  )}
-                </div>
-                <span className="text-sm text-gray-500">
-                  {new Date(message.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="text-gray-700">{message.content}</p>
-              {message.receiver && (
-                <p className="text-sm text-gray-500 mt-2">
-                  {isArabic ? 'إلى:' : 'To:'} {message.receiver.name || message.receiver.phone}
-                </p>
-              )}
+        <div className="bg-white rounded-xl shadow-md flex flex-col md:flex-row h-[70vh]">
+          {/* Conversations List */}
+          <div className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto ${
+            selectedUser ? 'hidden md:block' : ''
+          }`}>
+            <div className="p-3 border-b border-gray-200">
+              <h3 className="font-semibold text-primary">
+                {isArabic ? 'المحادثات' : 'Conversations'}
+              </h3>
             </div>
-          ))}
+            
+            {conversations.length === 0 ? (
+              <p className="text-center text-gray-500 py-8 text-sm">
+                {isArabic ? 'لا توجد محادثات' : 'No conversations'}
+              </p>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {conversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    onClick={() => handleSelectConversation(conv)}
+                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      selectedUser?.id === conv.id ? 'bg-blue-50' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-semibold text-primary text-sm truncate">
+                        {conv.name || conv.phone}
+                      </p>
+                      {conv.unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">{conv.lastMessage}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      {new Date(conv.lastMessageTime).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Chat Area */}
+          <div className={`flex-1 flex flex-col ${!selectedUser ? 'hidden md:flex' : ''}`}>
+            {selectedUser ? (
+              <>
+                {/* Chat Header */}
+                <div className="p-3 border-b border-gray-200 flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedUser(null)}
+                    className="md:hidden text-primary"
+                  >
+                    ←
+                  </button>
+                  <div>
+                    <p className="font-semibold text-primary">
+                      {selectedUser.name || selectedUser.phone}
+                    </p>
+                    {selectedUser.name && (
+                      <p className="text-xs text-gray-500">{selectedUser.phone}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {conversationMessages.map((message) => {
+                    const isAdmin = message.sender?.role === 'ADMIN'
+                    
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                            isAdmin
+                              ? 'bg-primary text-white rounded-br-sm'
+                              : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                          }`}
+                        >
+                          {message.isBroadcast && (
+                            <span className={`inline-block px-2 py-0.5 text-[10px] rounded-full mb-1 ${
+                              isAdmin ? 'bg-white bg-opacity-20' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {isArabic ? 'رسالة عامة' : 'Broadcast'}
+                            </span>
+                          )}
+                          
+                          {message.subject && (
+                            <p className={`font-semibold text-sm ${isAdmin ? 'text-white' : 'text-primary'}`}>
+                              {message.subject}
+                            </p>
+                          )}
+                          
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          
+                          <p className={`text-[10px] mt-1 ${isAdmin ? 'text-white text-opacity-70' : 'text-gray-500'}`}>
+                            {new Date(message.createdAt).toLocaleString(isArabic ? 'ar-EG' : 'en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Message Input */}
+                <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder={isArabic ? 'اكتب رسالتك...' : 'Type your message...'}
+                      className="flex-1 input-field"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newMessage.trim()}
+                      className="btn-primary px-4 md:px-6 disabled:opacity-50"
+                    >
+                      {isArabic ? 'إرسال' : 'Send'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <p className="text-4xl mb-4">💬</p>
+                  <p>{isArabic ? 'اختر محادثة للبدء' : 'Select a conversation to start'}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

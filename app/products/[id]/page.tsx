@@ -120,7 +120,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   nameEn: product.nameEn,
                   nameAr: product.nameAr,
                   price: displayPrice,
-                  image: product.image || '/images/product-tube.png'
+                  image: product.image || '/images/product-tube.png',
+                  stock: product.stock
                 }}
                 locale={locale}
               />

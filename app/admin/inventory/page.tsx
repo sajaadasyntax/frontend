@@ -109,10 +109,8 @@ export default function InventoryPage() {
                 <th className="text-left p-4">{isArabic ? 'المنتج' : 'Product'}</th>
                 <th className="text-center p-4">{isArabic ? 'الفئة' : 'Category'}</th>
                 <th className="text-center p-4">{isArabic ? 'السعر' : 'Price'}</th>
-                <th className="text-center p-4">{isArabic ? 'التكلفة' : 'Cost'}</th>
                 <th className="text-center p-4">{isArabic ? 'المخزون' : 'Stock'}</th>
                 <th className="text-center p-4">{isArabic ? 'نقاط الولاء' : 'Loyalty'}</th>
-                <th className="text-center p-4">{isArabic ? 'الحالة' : 'Status'}</th>
                 <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
               </tr>
             </thead>
@@ -141,9 +139,6 @@ export default function InventoryPage() {
                   <td className="text-center p-4 font-semibold">
                     SDG {product.price.toLocaleString()}
                   </td>
-                  <td className="text-center p-4 text-gray-600">
-                    SDG {(product.costPrice || 0).toLocaleString()}
-                  </td>
                   <td className="text-center p-4">
                     <span className={`px-3 py-1 rounded-full text-sm ${
                       product.stock < 10 
@@ -163,23 +158,6 @@ export default function InventoryPage() {
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
-                  </td>
-                  <td className="text-center p-4">
-                    <div className="flex flex-wrap justify-center gap-1">
-                      {product.isNew && (
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-                          {isArabic ? 'جديد' : 'New'}
-                        </span>
-                      )}
-                      {product.isSale && (
-                        <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">
-                          {product.discount}% {isArabic ? 'خصم' : 'off'}
-                        </span>
-                      )}
-                      {!product.isNew && !product.isSale && (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </div>
                   </td>
                   <td className="text-center p-4">
                     <div className="flex justify-center gap-2">

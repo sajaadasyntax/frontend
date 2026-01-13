@@ -220,6 +220,9 @@ export const procurementApi = {
   getAll: (token: string) =>
     request<any[]>('/procurement', { token }),
   
+  getById: (id: string, token: string) =>
+    request<any>(`/procurement/${id}`, { token }),
+  
   create: (data: any, token: string) =>
     request<any>('/procurement', { method: 'POST', body: data, token }),
 }

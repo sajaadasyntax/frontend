@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cart-store'
 
 interface Product {
@@ -11,6 +12,7 @@ interface Product {
   nameAr: string
   price: number
   image: string
+  stock: number
 }
 
 interface AddToCartButtonProps {
@@ -24,8 +26,21 @@ export default function AddToCartButton({ product, locale }: AddToCartButtonProp
   const addItem = useCartStore((state) => state.addItem)
   const cartItemCount = useCartStore((state) => state.getItemCount())
   const isArabic = locale === 'ar'
+  
+  const isOutOfStock = product.stock <= 0
+  const maxQuantity = product.stock
 
   const handleAddToCart = () => {
+    if (isOutOfStock) {
+      toast.error(isArabic ? 'هذا المنتج غير متوفر حالياً' : 'This product is out of stock')
+      return
+    }
+    
+    if (quantity > maxQuantity) {
+      toast.error(isArabic ? `الكمية المتاحة فقط ${maxQuantity}` : `Only ${maxQuantity} available in stock`)
+      return
+    }
+
     addItem({
       productId: product.id,
       name: product.nameEn,
@@ -35,6 +50,24 @@ export default function AddToCartButton({ product, locale }: AddToCartButtonProp
       image: product.image
     })
     setShowPopup(true)
+  }
+
+  const incrementQuantity = () => {
+    if (quantity < maxQuantity) {
+      setQuantity(quantity + 1)
+    } else {
+      toast.error(isArabic ? `الكمية المتاحة فقط ${maxQuantity}` : `Only ${maxQuantity} available`)
+    }
+  }
+
+  if (isOutOfStock) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+        <p className="text-red-600 font-semibold">
+          {isArabic ? '😔 هذا المنتج غير متوفر حالياً' : '😔 This product is currently out of stock'}
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -49,7 +82,7 @@ export default function AddToCartButton({ product, locale }: AddToCartButtonProp
         </button>
         <span className="text-lg md:text-xl font-semibold text-primary w-8 md:w-10 text-center">{quantity}</span>
         <button 
-          onClick={() => setQuantity(quantity + 1)}
+          onClick={incrementQuantity}
           className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
         >
           <Image src="/images/Add Icon.svg" alt="increase" width={14} height={14} className="w-3 h-3 md:w-[14px] md:h-[14px]" />

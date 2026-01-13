@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useLocaleStore } from '@/store/locale-store'
 import { useAuthStore } from '@/store/auth-store'
@@ -25,9 +25,10 @@ const adminNavItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated, user, logout } = useAuthStore()
   const tc = useTranslations('common')
   const { locale } = useLocaleStore()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   
   const isArabic = locale === 'ar'
 
@@ -39,6 +40,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [isAuthenticated, user, router])
 
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
+
+  const handleLogout = () => {
+    logout()
+    window.location.href = '/auth/login'
+  }
+
   if (!isAuthenticated || !user || user.role !== 'ADMIN') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -49,14 +60,60 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-primary text-white z-40 px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-bold">
+          {isArabic ? 'لوحة الإدارة' : 'Admin Panel'}
+        </h1>
+        <button
+          onClick={handleLogout}
+          className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+          title={isArabic ? 'تسجيل الخروج' : 'Logout'}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-primary text-white flex-shrink-0">
-        <div className="p-6">
-          <h1 className="text-xl font-bold">
+      <aside className={`
+        fixed lg:relative inset-y-0 left-0 z-50
+        w-64 bg-primary text-white flex-shrink-0
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        lg:transform-none
+      `}>
+        <div className="p-4 lg:p-6 flex items-center justify-between">
+          <h1 className="text-lg lg:text-xl font-bold">
             {isArabic ? 'لوحة الإدارة' : 'Admin Panel'}
           </h1>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1 rounded hover:bg-white hover:bg-opacity-10"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <nav className="mt-4">
+        <nav className="mt-2 lg:mt-4 overflow-y-auto max-h-[calc(100vh-160px)]">
           {adminNavItems.map((item) => {
             const isActive = pathname === item.href || 
               (item.href !== '/admin' && pathname.startsWith(item.href))
@@ -65,7 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-6 py-3 transition-colors ${
+                className={`flex items-center gap-3 px-4 lg:px-6 py-2.5 lg:py-3 transition-colors text-sm lg:text-base ${
                   isActive
                     ? 'bg-white bg-opacity-20 border-l-4 border-secondary'
                     : 'hover:bg-white hover:bg-opacity-10'
@@ -78,18 +135,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
         
-        <div className="absolute bottom-0 w-64 p-6">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-white opacity-80 hover:opacity-100"
+        {/* Logout Button */}
+        <div className="absolute bottom-0 w-64 p-4 lg:p-6 border-t border-white border-opacity-20">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-white opacity-80 hover:opacity-100 w-full"
           >
-            ← {isArabic ? 'العودة للمتجر' : 'Back to Store'}
-          </Link>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            {isArabic ? 'تسجيل الخروج' : 'Logout'}
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 p-4 lg:p-8 overflow-auto mt-14 lg:mt-0">
         {children}
       </main>
     </div>

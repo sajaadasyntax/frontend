@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useLocaleStore } from '@/store/locale-store'
@@ -15,27 +15,28 @@ interface Message {
   isRead: boolean
   isBroadcast: boolean
   createdAt: string
+  senderId: string
   sender?: {
+    id: string
     name: string
     phone: string
+    role: string
   }
 }
 
 export default function MessagesPage() {
   const t = useTranslations('messages')
   const tc = useTranslations('common')
-  const { isAuthenticated, token } = useAuthStore()
+  const { isAuthenticated, token, user } = useAuthStore()
   const router = useRouter()
   const { locale } = useLocaleStore()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const [activeTab, setActiveTab] = useState('inbox')
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
-  const [showCompose, setShowCompose] = useState(false)
-  const [newMessage, setNewMessage] = useState({
-    subject: '',
-    content: ''
-  })
+  const [newMessage, setNewMessage] = useState('')
+
+  const isArabic = locale === 'ar'
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -44,15 +45,27 @@ export default function MessagesPage() {
     }
 
     fetchMessages()
-  }, [isAuthenticated, token, activeTab, router])
+  }, [isAuthenticated, token, router])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const fetchMessages = async () => {
     if (!token) return
     
     setLoading(true)
     try {
-      const data = await messagesApi.getAll(token, activeTab)
-      setMessages(data)
+      const data = await messagesApi.getAll(token)
+      // Sort messages by date (oldest first for chat)
+      const sorted = data.sort((a: Message, b: Message) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      setMessages(sorted)
     } catch {
       toast.error('Error loading messages')
     } finally {
@@ -60,24 +73,24 @@ export default function MessagesPage() {
     }
   }
 
-  const handleSendMessage = async () => {
-    if (!newMessage.content || !token) {
-      toast.error('Please enter a message')
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage.trim() || !token) {
       return
     }
 
     try {
-      await messagesApi.create(newMessage, token)
-      toast.success('Message sent!')
-      setShowCompose(false)
-      setNewMessage({ subject: '', content: '' })
-      if (activeTab === 'sent') fetchMessages()
+      await messagesApi.create({ content: newMessage, subject: '' }, token)
+      setNewMessage('')
+      fetchMessages()
     } catch {
       toast.error('Error sending message')
     }
   }
 
-  const isArabic = locale === 'ar'
+  const isMyMessage = (message: Message) => {
+    return message.senderId === user?.id
+  }
 
   if (loading) {
     return (
@@ -88,127 +101,100 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold text-primary text-center mb-8">{t('title')}</h1>
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-3 md:px-[5%]">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-2xl md:text-4xl font-bold text-primary text-center mb-4 md:mb-6">
+          {t('title')}
+        </h1>
 
-        <div className="card">
-          {/* Tabs */}
-          <div className="flex gap-4 mb-6 border-b pb-4">
-            <button
-              onClick={() => setActiveTab('inbox')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                activeTab === 'inbox'
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {t('inbox')}
-            </button>
-            <button
-              onClick={() => setActiveTab('sent')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                activeTab === 'sent'
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {t('sent')}
-            </button>
-            <button
-              onClick={() => setShowCompose(true)}
-              className="btn-primary ml-auto"
-            >
-              {t('compose')}
-            </button>
-          </div>
-
-          {/* Compose Modal */}
-          {showCompose && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4">
-                <h2 className="text-xl font-bold text-primary mb-4">{t('newMessage')}</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('subject')}</label>
-                    <input
-                      type="text"
-                      value={newMessage.subject}
-                      onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('message')}</label>
-                    <textarea
-                      value={newMessage.content}
-                      onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
-                      className="input-field h-32"
-                      rows={4}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 mt-6">
-                  <button
-                    onClick={() => setShowCompose(false)}
-                    className="btn-outline flex-1"
-                  >
-                    {tc('cancel')}
-                  </button>
-                  <button
-                    onClick={handleSendMessage}
-                    className="btn-primary flex-1"
-                  >
-                    {t('send')}
-                  </button>
-                </div>
+        {/* Chat Container */}
+        <div className="bg-white rounded-xl shadow-md flex flex-col h-[70vh]">
+          {/* Messages Thread */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-500 py-12">
+                <p className="text-4xl mb-4">💬</p>
+                <p>{isArabic ? 'ابدأ محادثة مع الدعم الفني' : 'Start a conversation with support'}</p>
               </div>
-            </div>
-          )}
-
-          {/* Messages List */}
-          {messages.length === 0 ? (
-            <p className="text-center text-gray-600 py-8">{t('noMessages')}</p>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`p-4 rounded-lg border ${
-                    message.isRead ? 'bg-white' : 'bg-blue-50 border-blue-200'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      {message.subject && (
-                        <h3 className="font-semibold text-primary">{message.subject}</h3>
+            ) : (
+              messages.map((message) => {
+                const isOwn = isMyMessage(message)
+                const isAdmin = message.sender?.role === 'ADMIN'
+                
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                        isOwn
+                          ? 'bg-primary text-white rounded-br-sm'
+                          : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                      }`}
+                    >
+                      {/* Sender Name for admin messages */}
+                      {!isOwn && isAdmin && (
+                        <p className="text-xs font-semibold text-secondary mb-1">
+                          {isArabic ? 'الدعم الفني' : 'Support'}
+                        </p>
                       )}
-                      {message.isBroadcast ? (
-                        <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                      
+                      {/* Broadcast badge */}
+                      {message.isBroadcast && (
+                        <span className={`inline-block px-2 py-0.5 text-[10px] rounded-full mb-1 ${
+                          isOwn ? 'bg-white bg-opacity-20' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                           {isArabic ? 'رسالة عامة' : 'Broadcast'}
                         </span>
-                      ) : (
-                        <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                          {isArabic ? 'رسالة خاصة' : 'Direct Message'}
-                        </span>
                       )}
+                      
+                      {/* Subject */}
+                      {message.subject && (
+                        <p className={`font-semibold text-sm ${isOwn ? 'text-white' : 'text-primary'}`}>
+                          {message.subject}
+                        </p>
+                      )}
+                      
+                      {/* Content */}
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      
+                      {/* Time */}
+                      <p className={`text-[10px] mt-1 ${isOwn ? 'text-white text-opacity-70' : 'text-gray-500'}`}>
+                        {new Date(message.createdAt).toLocaleString(isArabic ? 'ar-EG' : 'en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
                     </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(message.createdAt).toLocaleDateString()}
-                    </span>
                   </div>
-                  <p className="text-gray-700">{message.content}</p>
-                  {message.sender && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      {isArabic ? 'من:' : 'From:'} {message.sender.name || message.sender.phone}
-                    </p>
-                  )}
-                </div>
-              ))}
+                )
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder={isArabic ? 'اكتب رسالتك...' : 'Type your message...'}
+                className="flex-1 input-field"
+              />
+              <button
+                type="submit"
+                disabled={!newMessage.trim()}
+                className="btn-primary px-6 disabled:opacity-50"
+              >
+                {isArabic ? 'إرسال' : 'Send'}
+              </button>
             </div>
-          )}
+          </form>
         </div>
       </div>
     </div>
