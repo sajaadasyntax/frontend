@@ -33,6 +33,8 @@ export default function AddProductPage() {
     nameAr: '',
     descriptionEn: '',
     descriptionAr: '',
+    longDescriptionEn: '',
+    longDescriptionAr: '',
     price: '',
     categoryId: '',
     loyaltyPointsEnabled: false,
@@ -171,27 +173,80 @@ export default function AddProductPage() {
             />
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isArabic ? 'الوصف (إنجليزي)' : 'Description (English)'}
-            </label>
-            <textarea
-              value={formData.descriptionEn}
-              onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
-              className="input-field h-24"
-            />
+          {/* Short Description Section */}
+          <div className="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-primary mb-3">
+              📝 {isArabic ? 'الوصف المختصر' : 'Short Description'}
+            </h3>
+            <p className="text-xs text-gray-500 mb-3">
+              {isArabic 
+                ? 'يظهر في صفحة المنتج بشكل افتراضي (2-3 جمل)'
+                : 'Shown by default on the product page (2-3 sentences)'
+              }
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {isArabic ? 'إنجليزي' : 'English'}
+                </label>
+                <textarea
+                  value={formData.descriptionEn}
+                  onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
+                  className="input-field h-20"
+                  placeholder={isArabic ? 'وصف مختصر بالإنجليزية...' : 'Short description in English...'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {isArabic ? 'عربي' : 'Arabic'}
+                </label>
+                <textarea
+                  value={formData.descriptionAr}
+                  onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
+                  className="input-field h-20"
+                  dir="rtl"
+                  placeholder={isArabic ? 'وصف مختصر بالعربية...' : 'Short description in Arabic...'}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {isArabic ? 'الوصف (عربي)' : 'Description (Arabic)'}
-            </label>
-            <textarea
-              value={formData.descriptionAr}
-              onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
-              className="input-field h-24"
-              dir="rtl"
-            />
+          {/* Long Description Section */}
+          <div className="md:col-span-2 bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-primary mb-3">
+              📄 {isArabic ? 'الوصف التفصيلي' : 'Full Description'}
+            </h3>
+            <p className="text-xs text-gray-500 mb-3">
+              {isArabic 
+                ? 'يظهر عند الضغط على تبويب "التفاصيل الكاملة" في صفحة المنتج'
+                : 'Shown when clicking "Full Details" tab on the product page'
+              }
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {isArabic ? 'إنجليزي' : 'English'}
+                </label>
+                <textarea
+                  value={formData.longDescriptionEn}
+                  onChange={(e) => setFormData({ ...formData, longDescriptionEn: e.target.value })}
+                  className="input-field h-32"
+                  placeholder={isArabic ? 'وصف تفصيلي بالإنجليزية...' : 'Detailed description in English...'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {isArabic ? 'عربي' : 'Arabic'}
+                </label>
+                <textarea
+                  value={formData.longDescriptionAr}
+                  onChange={(e) => setFormData({ ...formData, longDescriptionAr: e.target.value })}
+                  className="input-field h-32"
+                  dir="rtl"
+                  placeholder={isArabic ? 'وصف تفصيلي بالعربية...' : 'Detailed description in Arabic...'}
+                />
+              </div>
+            </div>
           </div>
 
           <div>

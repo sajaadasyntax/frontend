@@ -13,6 +13,8 @@ interface Product {
   nameAr: string
   descriptionEn: string
   descriptionAr: string
+  longDescriptionEn: string
+  longDescriptionAr: string
   price: number
   stock: number
   image: string
@@ -28,6 +30,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null)
   const [hasRecipes, setHasRecipes] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'overview' | 'details'>('overview')
 
   useEffect(() => {
     Promise.all([
@@ -58,7 +61,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   const isArabic = locale === 'ar'
   const name = isArabic ? product.nameAr : product.nameEn
-  const description = isArabic ? product.descriptionAr : product.descriptionEn
+  const shortDescription = isArabic ? product.descriptionAr : product.descriptionEn
+  const longDescription = isArabic ? product.longDescriptionAr : product.longDescriptionEn
   const currency = isArabic ? 'ج.س' : 'SDG'
   const perUnit = isArabic ? '/ الوحدة' : '/ Unit'
   
@@ -126,19 +130,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 locale={locale}
               />
 
-              {/* Description */}
-              <div>
-                <h3 className="font-bold text-primary mb-1 md:mb-2 text-sm">
-                  {isArabic ? 'الوصف:' : 'Description:'}
-                </h3>
-                <p className="text-gray-600 text-xs md:text-[13px] leading-relaxed">
-                  {description || (isArabic 
-                    ? 'منتج عالي الجودة للعناية بالبشرة. يساعد على تحسين مظهر البشرة وترطيبها.'
-                    : 'High-quality skincare product. Helps improve skin appearance and hydration.'
-                  )}
-                </p>
-              </div>
-
               {/* Loyalty Points Badge */}
               {product.loyaltyPointsEnabled && product.loyaltyPointsValue > 0 && (
                 <div className="bg-amber-50 p-2 md:p-3 rounded-lg border border-amber-200">
@@ -185,6 +176,68 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       📋 {isArabic ? 'عرض الوصفات' : 'View Recipes'}
                     </button>
                   </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Description Tabs */}
+          <div className="mt-6 md:mt-10 border-t border-gray-200 pt-6">
+            {/* Tab Buttons */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 md:px-6 md:py-2.5 rounded-full text-sm md:text-base font-medium transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {isArabic ? 'نظرة عامة' : 'Overview'}
+              </button>
+              <button
+                onClick={() => setActiveTab('details')}
+                className={`px-4 py-2 md:px-6 md:py-2.5 rounded-full text-sm md:text-base font-medium transition-all ${
+                  activeTab === 'details'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {isArabic ? 'التفاصيل الكاملة' : 'Full Details'}
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="bg-gray-50 rounded-lg p-4 md:p-6">
+              {activeTab === 'overview' ? (
+                <div>
+                  <h3 className="font-bold text-primary mb-2 text-sm md:text-base">
+                    {isArabic ? 'وصف المنتج' : 'Product Description'}
+                  </h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                    {shortDescription || (isArabic 
+                      ? 'منتج عالي الجودة للعناية بالبشرة. يساعد على تحسين مظهر البشرة وترطيبها.'
+                      : 'High-quality skincare product. Helps improve skin appearance and hydration.'
+                    )}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="font-bold text-primary mb-2 text-sm md:text-base">
+                    {isArabic ? 'التفاصيل الكاملة' : 'Full Product Details'}
+                  </h3>
+                  {longDescription ? (
+                    <p className="text-gray-600 text-sm md:text-base leading-relaxed whitespace-pre-line">
+                      {longDescription}
+                    </p>
+                  ) : (
+                    <p className="text-gray-400 text-sm md:text-base italic">
+                      {isArabic 
+                        ? 'لا توجد تفاصيل إضافية متاحة لهذا المنتج.'
+                        : 'No additional details available for this product.'
+                      }
+                    </p>
+                  )}
                 </div>
               )}
             </div>
