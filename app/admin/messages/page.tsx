@@ -48,6 +48,8 @@ export default function AdminMessagesPage() {
   const [newMessage, setNewMessage] = useState('')
   const [showBroadcast, setShowBroadcast] = useState(false)
   const [broadcastMessage, setBroadcastMessage] = useState({ subject: '', content: '' })
+  const [showNewChat, setShowNewChat] = useState(false)
+  const [searchUser, setSearchUser] = useState('')
 
   useEffect(() => {
     if (!token) return
@@ -140,6 +142,12 @@ export default function AdminMessagesPage() {
     setSelectedUser(user)
   }
 
+  const handleStartNewChat = (user: User) => {
+    setSelectedUser(user)
+    setShowNewChat(false)
+    setSearchUser('')
+  }
+
   const getConversationMessages = () => {
     if (!selectedUser) return []
     return messages
@@ -207,6 +215,70 @@ export default function AdminMessagesPage() {
         </button>
       </div>
 
+      {/* New Chat Modal */}
+      {showNewChat && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-4 md:p-6 w-full max-w-lg max-h-[80vh] flex flex-col">
+            <h2 className="text-xl font-bold text-primary mb-4">
+              {isArabic ? 'بدء محادثة جديدة' : 'Start New Chat'}
+            </h2>
+            
+            <div className="mb-4">
+              <input
+                type="text"
+                value={searchUser}
+                onChange={(e) => setSearchUser(e.target.value)}
+                placeholder={isArabic ? 'ابحث عن مستخدم...' : 'Search for a user...'}
+                className="input-field w-full"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2">
+              {users
+                .filter(u => 
+                  u.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
+                  u.phone?.includes(searchUser)
+                )
+                .map((user) => (
+                  <div
+                    key={user.id}
+                    onClick={() => handleStartNewChat(user)}
+                    className="p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <p className="font-semibold text-primary">
+                      {user.name || user.phone}
+                    </p>
+                    {user.name && (
+                      <p className="text-xs text-gray-500">{user.phone}</p>
+                    )}
+                  </div>
+                ))}
+              
+              {users.filter(u => 
+                u.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
+                u.phone?.includes(searchUser)
+              ).length === 0 && (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  {isArabic ? 'لا يوجد مستخدمون مطابقون' : 'No matching users found'}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  setShowNewChat(false)
+                  setSearchUser('')
+                }}
+                className="btn-outline w-full"
+              >
+                {isArabic ? 'إلغاء' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Broadcast Modal */}
       {showBroadcast && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -263,47 +335,56 @@ export default function AdminMessagesPage() {
       ) : (
         <div className="bg-white rounded-xl shadow-md flex flex-col md:flex-row h-[70vh]">
           {/* Conversations List */}
-          <div className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto ${
-            selectedUser ? 'hidden md:block' : ''
+          <div className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto flex flex-col ${
+            selectedUser ? 'hidden md:flex' : ''
           }`}>
-            <div className="p-3 border-b border-gray-200">
+            <div className="p-3 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-semibold text-primary">
                 {isArabic ? 'المحادثات' : 'Conversations'}
               </h3>
+              <button
+                onClick={() => setShowNewChat(true)}
+                className="btn-primary text-xs px-3 py-1"
+                title={isArabic ? 'محادثة جديدة' : 'New Chat'}
+              >
+                ➕
+              </button>
             </div>
             
-            {conversations.length === 0 ? (
-              <p className="text-center text-gray-500 py-8 text-sm">
-                {isArabic ? 'لا توجد محادثات' : 'No conversations'}
-              </p>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {conversations.map((conv) => (
-                  <div
-                    key={conv.id}
-                    onClick={() => handleSelectConversation(conv)}
-                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedUser?.id === conv.id ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-semibold text-primary text-sm truncate">
-                        {conv.name || conv.phone}
+            <div className="flex-1 overflow-y-auto">
+              {conversations.length === 0 ? (
+                <p className="text-center text-gray-500 py-8 text-sm">
+                  {isArabic ? 'لا توجد محادثات' : 'No conversations'}
+                </p>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {conversations.map((conv) => (
+                    <div
+                      key={conv.id}
+                      onClick={() => handleSelectConversation(conv)}
+                      className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                        selectedUser?.id === conv.id ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold text-primary text-sm truncate">
+                          {conv.name || conv.phone}
+                        </p>
+                        {conv.unreadCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {conv.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 truncate">{conv.lastMessage}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        {new Date(conv.lastMessageTime).toLocaleDateString()}
                       </p>
-                      {conv.unreadCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {conv.unreadCount}
-                        </span>
-                      )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate">{conv.lastMessage}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {new Date(conv.lastMessageTime).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Chat Area */}
