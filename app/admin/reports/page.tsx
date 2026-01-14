@@ -219,20 +219,20 @@ export default function ReportsPage() {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-2 mb-4 md:mb-6 flex-wrap overflow-x-auto pb-2 scrollbar-hide">
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+          className={`px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold transition-colors text-xs md:text-base whitespace-nowrap ${
             activeTab === 'products' 
               ? 'bg-primary text-white' 
               : 'bg-white text-gray-600 hover:bg-gray-100'
           }`}
         >
-          📦 {isArabic ? 'أعلى المنتجات مبيعاً' : 'Top Products'}
+          📦 {isArabic ? 'أعلى المنتجات' : 'Top Products'}
         </button>
         <button
           onClick={() => setActiveTab('customers')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+          className={`px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold transition-colors text-xs md:text-base whitespace-nowrap ${
             activeTab === 'customers' 
               ? 'bg-primary text-white' 
               : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -242,42 +242,42 @@ export default function ReportsPage() {
         </button>
         <button
           onClick={() => setActiveTab('profit')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+          className={`px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold transition-colors text-xs md:text-base whitespace-nowrap ${
             activeTab === 'profit' 
               ? 'bg-primary text-white' 
               : 'bg-white text-gray-600 hover:bg-gray-100'
           }`}
         >
-          📊 {isArabic ? 'الأرباح والخسائر' : 'Profit & Loss'}
+          📊 {isArabic ? 'الأرباح' : 'Profit & Loss'}
         </button>
         <button
           onClick={() => setActiveTab('single-product')}
-          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+          className={`px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold transition-colors text-xs md:text-base whitespace-nowrap ${
             activeTab === 'single-product' 
               ? 'bg-primary text-white' 
               : 'bg-white text-gray-600 hover:bg-gray-100'
           }`}
         >
-          🔍 {isArabic ? 'تقرير منتج واحد' : 'Single Product Report'}
+          🔍 {isArabic ? 'منتج واحد' : 'Single Product'}
         </button>
       </div>
 
       {/* Charts Container */}
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
         {/* Top Products Tab */}
         {activeTab === 'products' && (
           <div>
-            <h2 className="text-xl font-bold text-primary mb-6">
+            <h2 className="text-lg md:text-xl font-bold text-primary mb-4 md:mb-6">
               {isArabic ? 'أعلى 10 منتجات مبيعاً هذا الشهر' : 'Top 10 Selling Products This Month'}
             </h2>
             
             {topProducts.length === 0 ? (
-              <p className="text-gray-500 text-center py-12">
+              <p className="text-gray-500 text-center py-8 md:py-12 text-sm md:text-base">
                 {isArabic ? 'لا توجد بيانات مبيعات هذا الشهر' : 'No sales data for this month'}
               </p>
             ) : (
-              <div className="grid lg:grid-cols-2 gap-8">
-                <div className="h-[400px]">
+              <div className="grid lg:grid-cols-2 gap-4 md:gap-8">
+                <div className="h-[250px] md:h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -285,7 +285,7 @@ export default function ReportsPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        outerRadius={150}
+                        outerRadius="70%"
                         fill="#8884d8"
                         dataKey="value"
                         label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
@@ -299,14 +299,14 @@ export default function ReportsPage() {
                   </ResponsiveContainer>
                 </div>
                 
-                <div>
-                  <table className="w-full">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[300px]">
                     <thead className="bg-gray-100">
                       <tr>
-                        <th className="text-left p-3">#</th>
-                        <th className="text-left p-3">{isArabic ? 'المنتج' : 'Product'}</th>
-                        <th className="text-center p-3">{isArabic ? 'الكمية' : 'Qty'}</th>
-                        <th className="text-right p-3">{isArabic ? 'الإيرادات' : 'Revenue'}</th>
+                        <th className="text-left p-2 md:p-3 text-xs md:text-sm">#</th>
+                        <th className="text-left p-2 md:p-3 text-xs md:text-sm">{isArabic ? 'المنتج' : 'Product'}</th>
+                        <th className="text-center p-2 md:p-3 text-xs md:text-sm">{isArabic ? 'الكمية' : 'Qty'}</th>
+                        <th className="text-right p-2 md:p-3 text-xs md:text-sm">{isArabic ? 'الإيرادات' : 'Revenue'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">

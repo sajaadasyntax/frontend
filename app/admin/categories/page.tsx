@@ -158,27 +158,27 @@ export default function CategoriesPage() {
     return (
       <div key={category.id}>
         <div 
-          className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow ${level > 0 ? 'border-l-4 border-l-primary' : ''}`}
-          style={{ marginLeft: indent }}
+          className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 md:p-4 hover:shadow-md transition-shadow ${level > 0 ? 'border-l-4 border-l-primary' : ''}`}
+          style={{ marginLeft: level > 0 ? (indent > 24 ? 12 : indent) : 0 }}
         >
-          <div className="flex justify-between items-start">
-            <div className="flex items-start gap-3">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-3">
+            <div className="flex items-start gap-2 md:gap-3 flex-1">
               {hasChildren && (
                 <button
                   onClick={() => toggleExpand(category.id)}
-                  className="mt-1 text-gray-500 hover:text-primary transition-colors"
+                  className="mt-1 text-gray-500 hover:text-primary transition-colors text-sm md:text-base"
                 >
                   {isExpanded ? '▼' : '▶'}
                 </button>
               )}
               {!hasChildren && level > 0 && (
-                <span className="mt-1 text-gray-300">└</span>
+                <span className="mt-1 text-gray-300 hidden md:inline">└</span>
               )}
-              <div>
-                <h3 className="text-lg font-bold text-primary">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base md:text-lg font-bold text-primary">
                   {isArabic ? category.nameAr : category.nameEn}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs md:text-sm text-gray-500">
                   {isArabic ? category.nameEn : category.nameAr}
                 </p>
                 {category.parent && (
@@ -189,40 +189,40 @@ export default function CategoriesPage() {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {hasChildren && (
                 <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                  {category._count?.children || 0} {isArabic ? 'فئة فرعية' : 'subcategories'}
+                  {category._count?.children || 0} {isArabic ? 'فئة فرعية' : 'sub'}
                 </span>
               )}
               <span className="bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-full text-xs font-medium">
-                {category._count?.products || 0} {isArabic ? 'منتج' : 'products'}
+                {category._count?.products || 0} {isArabic ? 'منتج' : 'prod'}
               </span>
             </div>
           </div>
 
           {category.description && (
-            <p className="text-gray-600 text-sm mt-3 line-clamp-2">
+            <p className="text-gray-600 text-xs md:text-sm mt-2 md:mt-3 line-clamp-2">
               {category.description}
             </p>
           )}
 
-          <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-2 mt-3 md:mt-4 pt-3 border-t border-gray-100">
             <button
               onClick={() => handleAddSubcategory(category)}
-              className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium"
+              className="px-2 md:px-3 py-1 md:py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium"
             >
               ➕ {isArabic ? 'فئة فرعية' : 'Subcategory'}
             </button>
             <button
               onClick={() => handleEdit(category)}
-              className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
+              className="px-2 md:px-3 py-1 md:py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
             >
               ✏️ {isArabic ? 'تعديل' : 'Edit'}
             </button>
             <button
               onClick={() => handleDelete(category.id)}
-              className="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium"
+              className="px-2 md:px-3 py-1 md:py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium"
             >
               🗑️ {isArabic ? 'حذف' : 'Delete'}
             </button>

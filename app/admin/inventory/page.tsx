@@ -77,33 +77,35 @@ export default function InventoryPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-primary">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8">
+        <h1 className="text-xl md:text-3xl font-bold text-primary">
           {isArabic ? 'المخزون' : 'Inventory'}
         </h1>
         <Link href="/admin/inventory/add">
-          <button className="btn-primary">
+          <button className="btn-primary w-full md:w-auto text-sm md:text-base">
             ➕ {isArabic ? 'إضافة منتج' : 'Add Product'}
           </button>
         </Link>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="mb-4 md:mb-6">
         <input
           type="text"
           placeholder={isArabic ? 'البحث عن منتج...' : 'Search products...'}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input-field max-w-md"
+          className="input-field w-full md:max-w-md"
         />
       </div>
 
       {loading ? (
         <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[900px]">
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[700px]">
             <thead className="bg-primary text-white">
               <tr>
                 <th className="text-left p-4">{isArabic ? 'المنتج' : 'Product'}</th>
@@ -184,7 +186,80 @@ export default function InventoryPage() {
               {isArabic ? 'لا توجد منتجات' : 'No products found'}
             </p>
           )}
-        </div>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-4">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <Image
+                    src={getImageSrc(product.image)}
+                    alt={product.nameEn}
+                    width={60}
+                    height={60}
+                    className="rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-primary text-base">
+                      {isArabic ? product.nameAr : product.nameEn}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {product.category ? (isArabic ? product.category.nameAr : product.category.nameEn) : '-'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-600">{isArabic ? 'السعر:' : 'Price:'}</span>
+                    <p className="font-semibold">SDG {product.price.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">{isArabic ? 'المخزون:' : 'Stock:'}</span>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ml-2 ${
+                      product.stock < 10 
+                        ? 'bg-red-100 text-red-800' 
+                        : product.stock < 50 
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {product.stock}
+                    </span>
+                  </div>
+                </div>
+
+                {product.loyaltyPointsEnabled && (
+                  <div className="mb-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">
+                      ⭐ {product.loyaltyPointsValue} {isArabic ? 'نقطة' : 'points'}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                  <Link href={`/admin/inventory/${product.id}`} className="flex-1">
+                    <button className="w-full px-3 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+                      {isArabic ? 'تعديل' : 'Edit'}
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+                  >
+                    {isArabic ? 'حذف' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            {filteredProducts.length === 0 && (
+              <p className="text-center text-gray-600 py-8">
+                {isArabic ? 'لا توجد منتجات' : 'No products found'}
+              </p>
+            )}
+          </div>
+        </>
       )}
     </div>
   )

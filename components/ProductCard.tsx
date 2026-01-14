@@ -50,13 +50,12 @@ export default function ProductCard({
     <div className="product-card relative p-3 md:p-5">
       {/* Product Image */}
       <Link href={`/products/${id}`}>
-        <div className="flex justify-center items-center h-28 md:h-44 mb-2 md:mb-3 cursor-pointer">
+        <div className="relative w-full h-28 md:h-44 mb-2 md:mb-3 cursor-pointer overflow-hidden">
           <Image
             src={getImageSrc(image)}
             alt={name}
-            width={100}
-            height={150}
-            className="object-contain hover:scale-105 transition-transform w-16 h-24 md:w-[100px] md:h-[150px]"
+            fill
+            className="object-contain hover:scale-105 transition-transform"
           />
         </div>
       </Link>
