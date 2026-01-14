@@ -50,12 +50,13 @@ export default function ProductCard({
     <div className="product-card relative p-3 md:p-5">
       {/* Product Image */}
       <Link href={`/products/${id}`}>
-      <div className="relative w-[calc(100%+1.5rem)] md:w-[calc(100%+2.5rem)] h-28 md:h-44 -mx-3 md:-mx-5 mb-2 md:mb-3 cursor-pointer overflow-hidden">
-      <Image
+        <div className="relative w-[calc(100%+1.5rem)] md:w-[calc(100%+2.5rem)] h-32 md:h-48 -mx-3 md:-mx-5 -mt-3 md:-mt-5 mb-2 md:mb-3 cursor-pointer overflow-hidden rounded-t-xl bg-white">
+          <Image
             src={getImageSrc(image)}
             alt={name}
             fill
-            className="object-contain hover:scale-105 transition-transform"
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover hover:scale-105 transition-transform"
           />
         </div>
       </Link>
