@@ -60,9 +60,20 @@ export default function MessagesPage() {
     
     setLoading(true)
     try {
-      const data = await messagesApi.getAll(token)
+      // Fetch both inbox and sent messages
+      const [inboxData, sentData] = await Promise.all([
+        messagesApi.getAll(token, 'inbox'),
+        messagesApi.getAll(token, 'sent')
+      ])
+      
+      // Combine and deduplicate messages
+      const allMessages = [...inboxData, ...sentData]
+      const uniqueMessages = allMessages.filter((msg, index, self) =>
+        index === self.findIndex((m) => m.id === msg.id)
+      )
+      
       // Sort messages by date (oldest first for chat)
-      const sorted = data.sort((a: Message, b: Message) => 
+      const sorted = uniqueMessages.sort((a: Message, b: Message) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       )
       setMessages(sorted)
