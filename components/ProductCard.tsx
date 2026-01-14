@@ -50,8 +50,8 @@ export default function ProductCard({
     <div className="product-card relative p-3 md:p-5">
       {/* Product Image */}
       <Link href={`/products/${id}`}>
-        <div className="relative w-full h-28 md:h-44 mb-2 md:mb-3 cursor-pointer overflow-hidden">
-          <Image
+      <div className="relative w-[calc(100%+1.5rem)] md:w-[calc(100%+2.5rem)] h-28 md:h-44 -mx-3 md:-mx-5 mb-2 md:mb-3 cursor-pointer overflow-hidden">
+      <Image
             src={getImageSrc(image)}
             alt={name}
             fill
