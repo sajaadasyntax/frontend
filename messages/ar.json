@@ -148,6 +148,7 @@
     "messaging": "الرسائل",
     "broadcast": "رسالة جماعية",
     "loyaltyPoints": "نقاط الولاء",
+    "loyaltyShop": "متجر الولاء",
     "discountCodes": "أكواد الخصم",
     "users": "المستخدمين",
     "settings": "الإعدادات",
@@ -156,6 +157,35 @@
     "costPrice": "سعر التكلفة",
     "stock": "المخزون",
     "category": "الفئة"
+  },
+  "loyaltyShop": {
+    "title": "متجر الولاء",
+    "unlockMessage": "لقد فتحت متجر الولاء. يمكنك الآن استبدال نقاطك بمنتجات حصرية!",
+    "pointsRequired": "النقاط المطلوبة",
+    "redeem": "استبدال",
+    "redeemSuccess": "تم استبدال المنتج بنجاح!",
+    "insufficientPoints": "نقاطك غير كافية",
+    "outOfStock": "نفذت الكمية",
+    "needMorePoints": "تحتاج نقاط أكثر",
+    "yourPoints": "نقاطك",
+    "products": "المنتجات",
+    "myRedemptions": "طلباتي",
+    "settings": "الإعدادات",
+    "minPointsToUnlock": "الحد الأدنى للنقاط لفتح المتجر",
+    "addProduct": "إضافة منتج",
+    "editProduct": "تعديل المنتج",
+    "removeProduct": "إزالة المنتج",
+    "stockLimit": "حد المخزون",
+    "unlimited": "غير محدود",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "pending": "قيد الانتظار",
+    "confirmed": "مؤكد",
+    "shipped": "تم الشحن",
+    "delivered": "تم التسليم",
+    "cancelled": "ملغي",
+    "deliveryAddress": "عنوان التوصيل",
+    "confirmRedemption": "تأكيد الاستبدال"
   }
 }
 

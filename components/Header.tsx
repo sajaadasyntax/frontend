@@ -6,8 +6,10 @@ import { useTranslations } from 'next-intl'
 import { useCartStore } from '@/store/cart-store'
 import { useLocaleStore } from '@/store/locale-store'
 import { useAuthStore } from '@/store/auth-store'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { loyaltyShopApi } from '@/lib/api'
+import toast from 'react-hot-toast'
 
 export default function Header() {
   const t = useTranslations('common')
@@ -15,10 +17,12 @@ export default function Header() {
   const pathname = usePathname()
   const { locale, setLocale } = useLocaleStore()
   const cartItemCount = useCartStore((state) => state.getItemCount())
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, logout, token } = useAuthStore()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [loyaltyShopUnlocked, setLoyaltyShopUnlocked] = useState(false)
+  const [hasShownUnlockMessage, setHasShownUnlockMessage] = useState(false)
 
   // Redirect admin users to admin panel (they shouldn't access user pages)
   useEffect(() => {
@@ -26,6 +30,40 @@ export default function Header() {
       router.replace('/admin')
     }
   }, [isAuthenticated, user, pathname, router])
+
+  // Check loyalty shop access
+  const checkLoyaltyAccess = useCallback(async () => {
+    if (!token || user?.role === 'ADMIN') return
+
+    try {
+      const result = await loyaltyShopApi.checkAccess(token)
+      const wasLocked = !loyaltyShopUnlocked
+      setLoyaltyShopUnlocked(result.canAccess)
+
+      // Show notification when shop is first unlocked
+      const shownKey = `loyalty_unlock_shown_${user?.id}`
+      const hasShown = localStorage.getItem(shownKey)
+      
+      if (result.canAccess && wasLocked && !hasShown && !hasShownUnlockMessage) {
+        setHasShownUnlockMessage(true)
+        localStorage.setItem(shownKey, 'true')
+        toast.success(
+          locale === 'ar' 
+            ? '🎉 تهانينا! لقد فتحت متجر الولاء. يمكنك الآن استبدال نقاطك بمنتجات حصرية!'
+            : '🎉 Congratulations! You\'ve unlocked the Loyalty Shop. You can now redeem your points for exclusive products!',
+          { duration: 6000 }
+        )
+      }
+    } catch (error) {
+      console.error('Error checking loyalty access:', error)
+    }
+  }, [token, user?.role, user?.id, loyaltyShopUnlocked, hasShownUnlockMessage, locale])
+
+  useEffect(() => {
+    if (isAuthenticated && token && user?.role !== 'ADMIN') {
+      checkLoyaltyAccess()
+    }
+  }, [isAuthenticated, token, user?.role, checkLoyaltyAccess])
 
   const toggleLocale = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'
@@ -193,6 +231,15 @@ export default function Header() {
                         >
                           الرسائل / Messages
                         </Link>
+                        {loyaltyShopUnlocked && (
+                          <Link
+                            href="/loyalty-shop"
+                            className="block px-4 py-2 text-sm text-amber-600 font-medium hover:bg-amber-50"
+                            onClick={() => setShowUserMenu(false)}
+                          >
+                            🎁 {locale === 'ar' ? 'متجر الولاء' : 'Loyalty Shop'}
+                          </Link>
+                        )}
                       </>
                     )}
                     <hr className="my-2" />

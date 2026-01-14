@@ -148,6 +148,7 @@
     "messaging": "Messaging",
     "broadcast": "Broadcast Message",
     "loyaltyPoints": "Loyalty Points",
+    "loyaltyShop": "Loyalty Shop",
     "discountCodes": "Discount Codes",
     "users": "Users",
     "settings": "Settings",
@@ -156,6 +157,35 @@
     "costPrice": "Cost Price",
     "stock": "Stock",
     "category": "Category"
+  },
+  "loyaltyShop": {
+    "title": "Loyalty Shop",
+    "unlockMessage": "You've unlocked the Loyalty Shop. You can now redeem your points for exclusive products!",
+    "pointsRequired": "Points Required",
+    "redeem": "Redeem",
+    "redeemSuccess": "Product redeemed successfully!",
+    "insufficientPoints": "Insufficient points",
+    "outOfStock": "Out of Stock",
+    "needMorePoints": "Need More Points",
+    "yourPoints": "Your Points",
+    "products": "Products",
+    "myRedemptions": "My Redemptions",
+    "settings": "Settings",
+    "minPointsToUnlock": "Minimum Points to Unlock Shop",
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "removeProduct": "Remove Product",
+    "stockLimit": "Stock Limit",
+    "unlimited": "Unlimited",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled",
+    "deliveryAddress": "Delivery Address",
+    "confirmRedemption": "Confirm Redemption"
   }
 }
 

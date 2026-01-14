@@ -251,6 +251,53 @@ export const recipesApi = {
     request<void>(`/recipes/${id}`, { method: 'DELETE', token }),
 }
 
+// Loyalty Shop API
+export const loyaltyShopApi = {
+  // Public
+  getSettings: () =>
+    request<any>('/loyalty-shop/settings'),
+
+  // Authenticated user
+  checkAccess: (token: string) =>
+    request<{ canAccess: boolean; userPoints: number; requiredPoints: number; reason: string }>(
+      '/loyalty-shop/access',
+      { token }
+    ),
+
+  getProducts: (token: string) =>
+    request<any[]>('/loyalty-shop/products', { token }),
+
+  redeemProduct: (data: { loyaltyProductId: string; quantity?: number; country?: string; state?: string; address?: string }, token: string) =>
+    request<any>('/loyalty-shop/redeem', { method: 'POST', body: data, token }),
+
+  getMyRedemptions: (token: string) =>
+    request<any[]>('/loyalty-shop/my-redemptions', { token }),
+
+  // Admin
+  updateSettings: (data: { minPointsToUnlock?: number; pointsPerCurrency?: number }, token: string) =>
+    request<any>('/loyalty-shop/settings', { method: 'PUT', body: data, token }),
+
+  addProduct: (data: { productId: string; pointsRequired: number; stockLimit?: number; isActive?: boolean }, token: string) =>
+    request<any>('/loyalty-shop/products', { method: 'POST', body: data, token }),
+
+  updateProduct: (id: string, data: { pointsRequired?: number; stockLimit?: number | null; isActive?: boolean }, token: string) =>
+    request<any>(`/loyalty-shop/products/${id}`, { method: 'PUT', body: data, token }),
+
+  removeProduct: (id: string, token: string) =>
+    request<void>(`/loyalty-shop/products/${id}`, { method: 'DELETE', token }),
+
+  getAvailableProducts: (token: string) =>
+    request<any[]>('/loyalty-shop/available-products', { token }),
+
+  getAllRedemptions: (token: string, status?: string) => {
+    const query = status ? `?status=${status}` : ''
+    return request<any[]>(`/loyalty-shop/redemptions${query}`, { token })
+  },
+
+  updateRedemptionStatus: (id: string, status: string, token: string) =>
+    request<any>(`/loyalty-shop/redemptions/${id}/status`, { method: 'PUT', body: { status }, token }),
+}
+
 export default {
   auth: authApi,
   products: productsApi,
@@ -265,5 +312,6 @@ export default {
   procurement: procurementApi,
   reports: reportsApi,
   recipes: recipesApi,
+  loyaltyShop: loyaltyShopApi,
 }
 

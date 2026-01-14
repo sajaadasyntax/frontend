@@ -16,6 +16,7 @@ const adminNavItems = [
   { href: '/admin/reports', labelEn: 'Reports', labelAr: 'التقارير', icon: '📈' },
   { href: '/admin/messages', labelEn: 'Messages', labelAr: 'الرسائل', icon: '💬' },
   { href: '/admin/loyalty', labelEn: 'Loyalty Points', labelAr: 'نقاط الولاء', icon: '⭐' },
+  { href: '/admin/loyalty-shop', labelEn: 'Loyalty Shop', labelAr: 'متجر الولاء', icon: '🎁' },
   { href: '/admin/coupons', labelEn: 'Discount Codes', labelAr: 'أكواد الخصم', icon: '🎫' },
   { href: '/admin/users', labelEn: 'Users', labelAr: 'المستخدمين', icon: '👥' },
   { href: '/admin/bank-accounts', labelEn: 'Bank Accounts', labelAr: 'الحسابات البنكية', icon: '🏦' },

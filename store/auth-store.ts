@@ -8,6 +8,9 @@ interface User {
   email?: string
   role: 'USER' | 'ADMIN'
   loyaltyPoints: number
+  country?: string
+  state?: string
+  address?: string
 }
 
 interface AuthState {
