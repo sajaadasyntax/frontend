@@ -21,6 +21,7 @@ interface Product {
   isNew: boolean
   isSale: boolean
   discount: number
+  isArchived: boolean
   category: {
     nameEn: string
     nameAr: string
@@ -35,6 +36,7 @@ export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -42,12 +44,29 @@ export default function InventoryPage() {
 
   const fetchProducts = async () => {
     try {
-      const data = await productsApi.getAll()
+      // Admin always fetches all products including archived
+      const data = await productsApi.getAll({ includeArchived: 'true' })
       setProducts(data)
     } catch {
       toast.error('Error loading products')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleArchiveToggle = async (product: Product) => {
+    if (!token) return
+
+    try {
+      await productsApi.update(product.id, { isArchived: !product.isArchived }, token)
+      setProducts(products.map(p => p.id === product.id ? { ...p, isArchived: !product.isArchived } : p))
+      toast.success(
+        product.isArchived 
+          ? (isArabic ? 'تم إلغاء الأرشفة' : 'Product unarchived')
+          : (isArabic ? 'تم أرشفة المنتج' : 'Product archived')
+      )
+    } catch {
+      toast.error(isArabic ? 'حدث خطأ' : 'An error occurred')
     }
   }
 
@@ -70,10 +89,12 @@ export default function InventoryPage() {
     return image
   }
 
-  const filteredProducts = products.filter(p => 
-    p.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-    p.nameAr.includes(search)
-  )
+  const filteredProducts = products
+    .filter(p => showArchived ? p.isArchived : !p.isArchived)
+    .filter(p => 
+      p.nameEn.toLowerCase().includes(search.toLowerCase()) ||
+      p.nameAr.includes(search)
+    )
 
   return (
     <div>
@@ -88,15 +109,29 @@ export default function InventoryPage() {
         </Link>
       </div>
 
-      {/* Search */}
-      <div className="mb-4 md:mb-6">
+      {/* Search and Filter */}
+      <div className="mb-4 md:mb-6 flex flex-col sm:flex-row gap-3">
         <input
           type="text"
           placeholder={isArabic ? 'البحث عن منتج...' : 'Search products...'}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input-field w-full md:max-w-md"
+          className="input-field w-full sm:max-w-md"
         />
+        <button
+          onClick={() => setShowArchived(!showArchived)}
+          className={`px-4 py-2 rounded-lg font-medium transition text-sm ${
+            showArchived 
+              ? 'bg-amber-100 text-amber-800' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          📦 {showArchived 
+            ? (isArabic ? 'المؤرشفة' : 'Archived')
+            : (isArabic ? 'عرض المؤرشفة' : 'Show Archived')
+          }
+          {showArchived && ` (${products.filter(p => p.isArchived).length})`}
+        </button>
       </div>
 
       {loading ? (
@@ -168,6 +203,20 @@ export default function InventoryPage() {
                           {isArabic ? 'تعديل' : 'Edit'}
                         </button>
                       </Link>
+                      <button
+                        onClick={() => handleArchiveToggle(product)}
+                        className={`px-3 py-1 rounded hover:opacity-80 ${
+                          product.isArchived 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-amber-100 text-amber-700'
+                        }`}
+                        title={product.isArchived 
+                          ? (isArabic ? 'إلغاء الأرشفة' : 'Unarchive')
+                          : (isArabic ? 'أرشفة' : 'Archive')
+                        }
+                      >
+                        {product.isArchived ? '↩️' : '📦'}
+                      </button>
                       <button
                         onClick={() => handleDelete(product.id)}
                         className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
@@ -244,10 +293,20 @@ export default function InventoryPage() {
                     </button>
                   </Link>
                   <button
-                    onClick={() => handleDelete(product.id)}
-                    className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+                    onClick={() => handleArchiveToggle(product)}
+                    className={`px-3 py-2 rounded text-sm ${
+                      product.isArchived 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-amber-100 text-amber-700'
+                    }`}
                   >
-                    {isArabic ? 'حذف' : 'Delete'}
+                    {product.isArchived ? '↩️' : '📦'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+                  >
+                    🗑️
                   </button>
                 </div>
               </div>

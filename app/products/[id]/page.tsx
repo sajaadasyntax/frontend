@@ -84,14 +84,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10">
             {/* Product Image */}
             <div className="relative">
-              <div className="product-card p-4 md:p-5">
-                <div className="flex justify-center items-center h-48 md:h-72">
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="relative w-full aspect-square">
                   <Image
                     src={getImageSrc(product.image)}
                     alt={name}
-                    width={140}
-                    height={210}
-                    className="object-contain w-28 h-40 md:w-[140px] md:h-[210px]"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover"
                   />
                 </div>
               </div>

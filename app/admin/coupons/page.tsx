@@ -102,13 +102,13 @@ export default function CouponsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-primary">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-8">
+        <h1 className="text-xl md:text-3xl font-bold text-primary">
           {isArabic ? 'أكواد الخصم' : 'Discount Codes'}
         </h1>
         <button
           onClick={() => setShowForm(true)}
-          className="btn-primary"
+          className="btn-primary w-full sm:w-auto"
         >
           ➕ {isArabic ? 'إضافة كود' : 'Add Coupon'}
         </button>
@@ -228,75 +228,137 @@ export default function CouponsPage() {
       {loading ? (
         <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th className="text-left p-4">{isArabic ? 'الكود' : 'Code'}</th>
-                <th className="text-center p-4">{isArabic ? 'الخصم' : 'Discount'}</th>
-                <th className="text-center p-4">{isArabic ? 'الحد الأدنى' : 'Min. Purchase'}</th>
-                <th className="text-center p-4">{isArabic ? 'الاستخدام' : 'Usage'}</th>
-                <th className="text-center p-4">{isArabic ? 'الانتهاء' : 'Expires'}</th>
-                <th className="text-center p-4">{isArabic ? 'الحالة' : 'Status'}</th>
-                <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {coupons.map((coupon) => (
-                <tr key={coupon.id} className="hover:bg-gray-50">
-                  <td className="p-4 font-mono font-bold text-primary">{coupon.code}</td>
-                  <td className="text-center p-4">
-                    {coupon.discountType === 'percentage' 
-                      ? `${coupon.discountValue}%` 
-                      : `SDG ${coupon.discountValue}`
-                    }
-                  </td>
-                  <td className="text-center p-4">
-                    {coupon.minPurchase ? `SDG ${coupon.minPurchase.toLocaleString()}` : '-'}
-                  </td>
-                  <td className="text-center p-4">
-                    {coupon.usedCount} / {coupon.maxUses || '∞'}
-                  </td>
-                  <td className="text-center p-4 text-gray-600">
-                    {coupon.expiresAt 
-                      ? new Date(coupon.expiresAt).toLocaleDateString()
-                      : isArabic ? 'بدون انتهاء' : 'No expiry'
-                    }
-                  </td>
-                  <td className="text-center p-4">
-                    <button
-                      onClick={() => toggleCouponStatus(coupon.id, coupon.isActive)}
-                      className={`px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${
-                        coupon.isActive 
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                          : 'bg-red-100 text-red-800 hover:bg-red-200'
-                      }`}
-                    >
-                      {coupon.isActive 
-                        ? (isArabic ? 'نشط' : 'Active')
-                        : (isArabic ? 'غير نشط' : 'Inactive')
-                      }
-                    </button>
-                  </td>
-                  <td className="text-center p-4">
-                    <button
-                      onClick={() => handleDelete(coupon.id)}
-                      className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
-                    >
-                      {isArabic ? 'حذف' : 'Delete'}
-                    </button>
-                  </td>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="text-left p-4">{isArabic ? 'الكود' : 'Code'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الخصم' : 'Discount'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الحد الأدنى' : 'Min. Purchase'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الاستخدام' : 'Usage'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الانتهاء' : 'Expires'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الحالة' : 'Status'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {coupons.map((coupon) => (
+                  <tr key={coupon.id} className="hover:bg-gray-50">
+                    <td className="p-4 font-mono font-bold text-primary">{coupon.code}</td>
+                    <td className="text-center p-4">
+                      {coupon.discountType === 'percentage' 
+                        ? `${coupon.discountValue}%` 
+                        : `SDG ${coupon.discountValue}`
+                      }
+                    </td>
+                    <td className="text-center p-4">
+                      {coupon.minPurchase ? `SDG ${coupon.minPurchase.toLocaleString()}` : '-'}
+                    </td>
+                    <td className="text-center p-4">
+                      {coupon.usedCount} / {coupon.maxUses || '∞'}
+                    </td>
+                    <td className="text-center p-4 text-gray-600">
+                      {coupon.expiresAt 
+                        ? new Date(coupon.expiresAt).toLocaleDateString()
+                        : isArabic ? 'بدون انتهاء' : 'No expiry'
+                      }
+                    </td>
+                    <td className="text-center p-4">
+                      <button
+                        onClick={() => toggleCouponStatus(coupon.id, coupon.isActive)}
+                        className={`px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${
+                          coupon.isActive 
+                            ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                            : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        }`}
+                      >
+                        {coupon.isActive 
+                          ? (isArabic ? 'نشط' : 'Active')
+                          : (isArabic ? 'غير نشط' : 'Inactive')
+                        }
+                      </button>
+                    </td>
+                    <td className="text-center p-4">
+                      <button
+                        onClick={() => handleDelete(coupon.id)}
+                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      >
+                        {isArabic ? 'حذف' : 'Delete'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {coupons.map((coupon) => (
+              <div key={coupon.id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-mono font-bold text-primary text-lg">{coupon.code}</p>
+                    <p className="text-sm text-gray-500">
+                      {coupon.discountType === 'percentage' 
+                        ? `${coupon.discountValue}%` 
+                        : `SDG ${coupon.discountValue}`
+                      } {isArabic ? 'خصم' : 'off'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => toggleCouponStatus(coupon.id, coupon.isActive)}
+                    className={`px-3 py-1 rounded-full text-xs ${
+                      coupon.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {coupon.isActive 
+                      ? (isArabic ? 'نشط' : 'Active')
+                      : (isArabic ? 'غير نشط' : 'Inactive')
+                    }
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-600">{isArabic ? 'الحد الأدنى:' : 'Min:'}</span>
+                    <p className="font-medium">{coupon.minPurchase ? `SDG ${coupon.minPurchase.toLocaleString()}` : '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">{isArabic ? 'الاستخدام:' : 'Usage:'}</span>
+                    <p className="font-medium">{coupon.usedCount} / {coupon.maxUses || '∞'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-600">{isArabic ? 'الانتهاء:' : 'Expires:'}</span>
+                    <span className="font-medium ml-2">
+                      {coupon.expiresAt 
+                        ? new Date(coupon.expiresAt).toLocaleDateString()
+                        : isArabic ? 'بدون انتهاء' : 'No expiry'
+                      }
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => handleDelete(coupon.id)}
+                  className="w-full px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+                >
+                  {isArabic ? 'حذف' : 'Delete'}
+                </button>
+              </div>
+            ))}
+          </div>
           
           {coupons.length === 0 && (
             <p className="text-center text-gray-600 py-8">
               {isArabic ? 'لا توجد أكواد خصم' : 'No coupons found'}
             </p>
           )}
-        </div>
+        </>
       )}
     </div>
   )

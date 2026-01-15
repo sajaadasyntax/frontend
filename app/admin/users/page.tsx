@@ -176,23 +176,23 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-primary">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-8">
+        <h1 className="text-xl md:text-3xl font-bold text-primary">
           {isArabic ? 'المستخدمين' : 'Users'}
         </h1>
-        <button onClick={openAddModal} className="btn-primary">
+        <button onClick={openAddModal} className="btn-primary w-full sm:w-auto">
           ➕ {isArabic ? 'إضافة مستخدم' : 'Add User'}
         </button>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="mb-4 md:mb-6">
         <input
           type="text"
           placeholder={isArabic ? 'البحث عن مستخدم...' : 'Search users...'}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="input-field max-w-md"
+          className="input-field w-full md:max-w-md"
         />
       </div>
 
@@ -354,82 +354,143 @@ export default function UsersPage() {
       {loading ? (
         <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th className="text-left p-4">{isArabic ? 'المستخدم' : 'User'}</th>
-                <th className="text-center p-4">{isArabic ? 'رقم الهاتف' : 'Phone'}</th>
-                <th className="text-center p-4">{isArabic ? 'الدور' : 'Role'}</th>
-                <th className="text-center p-4">{isArabic ? 'الطلبات' : 'Orders'}</th>
-                <th className="text-center p-4">{isArabic ? 'النقاط' : 'Points'}</th>
-                <th className="text-center p-4">{isArabic ? 'تاريخ التسجيل' : 'Joined'}</th>
-                <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="p-4">
-                    <p className="font-semibold text-primary">{user.name || '-'}</p>
-                    {user.email && <p className="text-sm text-gray-500">{user.email}</p>}
-                  </td>
-                  <td className="text-center p-4 font-mono">{user.phone}</td>
-                  <td className="text-center p-4">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      user.role === 'ADMIN' 
-                        ? 'bg-purple-100 text-purple-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {user.role === 'ADMIN' 
-                        ? (isArabic ? 'مدير' : 'Admin')
-                        : (isArabic ? 'مستخدم' : 'User')
-                      }
-                    </span>
-                  </td>
-                  <td className="text-center p-4">{user._count?.orders || 0}</td>
-                  <td className="text-center p-4">
-                    <span className="inline-flex items-center gap-1">
-                      ⭐ {user.loyaltyPoints}
-                    </span>
-                  </td>
-                  <td className="text-center p-4 text-gray-600">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="text-center p-4">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => viewOrderHistory(user)}
-                        className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
-                        title={isArabic ? 'سجل الطلبات' : 'Order History'}
-                      >
-                        📋
-                      </button>
-                      <button
-                        onClick={() => openEditModal(user)}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                      >
-                        {isArabic ? 'تعديل' : 'Edit'}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user)}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
-                      >
-                        {isArabic ? 'حذف' : 'Delete'}
-                      </button>
-                    </div>
-                  </td>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="text-left p-4">{isArabic ? 'المستخدم' : 'User'}</th>
+                  <th className="text-center p-4">{isArabic ? 'رقم الهاتف' : 'Phone'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الدور' : 'Role'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الطلبات' : 'Orders'}</th>
+                  <th className="text-center p-4">{isArabic ? 'النقاط' : 'Points'}</th>
+                  <th className="text-center p-4">{isArabic ? 'تاريخ التسجيل' : 'Joined'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="p-4">
+                      <p className="font-semibold text-primary">{user.name || '-'}</p>
+                      {user.email && <p className="text-sm text-gray-500">{user.email}</p>}
+                    </td>
+                    <td className="text-center p-4 font-mono">{user.phone}</td>
+                    <td className="text-center p-4">
+                      <span className={`px-3 py-1 rounded-full text-sm ${
+                        user.role === 'ADMIN' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role === 'ADMIN' 
+                          ? (isArabic ? 'مدير' : 'Admin')
+                          : (isArabic ? 'مستخدم' : 'User')
+                        }
+                      </span>
+                    </td>
+                    <td className="text-center p-4">{user._count?.orders || 0}</td>
+                    <td className="text-center p-4">
+                      <span className="inline-flex items-center gap-1">
+                        ⭐ {user.loyaltyPoints}
+                      </span>
+                    </td>
+                    <td className="text-center p-4 text-gray-600">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="text-center p-4">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => viewOrderHistory(user)}
+                          className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                          title={isArabic ? 'سجل الطلبات' : 'Order History'}
+                        >
+                          📋
+                        </button>
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                        >
+                          {isArabic ? 'تعديل' : 'Edit'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                        >
+                          {isArabic ? 'حذف' : 'Delete'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {filteredUsers.map((user) => (
+              <div key={user.id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-semibold text-primary">{user.name || '-'}</p>
+                    <p className="text-sm text-gray-500">{user.phone}</p>
+                    {user.email && <p className="text-xs text-gray-400">{user.email}</p>}
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    user.role === 'ADMIN' 
+                      ? 'bg-purple-100 text-purple-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {user.role === 'ADMIN' ? (isArabic ? 'مدير' : 'Admin') : (isArabic ? 'مستخدم' : 'User')}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 text-sm mb-3">
+                  <div className="text-center bg-gray-50 rounded p-2">
+                    <p className="text-gray-600 text-xs">{isArabic ? 'الطلبات' : 'Orders'}</p>
+                    <p className="font-semibold">{user._count?.orders || 0}</p>
+                  </div>
+                  <div className="text-center bg-yellow-50 rounded p-2">
+                    <p className="text-gray-600 text-xs">{isArabic ? 'النقاط' : 'Points'}</p>
+                    <p className="font-semibold">⭐ {user.loyaltyPoints}</p>
+                  </div>
+                  <div className="text-center bg-gray-50 rounded p-2">
+                    <p className="text-gray-600 text-xs">{isArabic ? 'انضم' : 'Joined'}</p>
+                    <p className="font-semibold text-xs">{new Date(user.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => viewOrderHistory(user)}
+                    className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded text-sm"
+                  >
+                    📋 {isArabic ? 'الطلبات' : 'Orders'}
+                  </button>
+                  <button
+                    onClick={() => openEditModal(user)}
+                    className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm"
+                  >
+                    {isArabic ? 'تعديل' : 'Edit'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user)}
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded text-sm"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
           
           {filteredUsers.length === 0 && (
             <p className="text-center text-gray-600 py-8">
               {isArabic ? 'لا يوجد مستخدمين' : 'No users found'}
             </p>
           )}
-        </div>
+        </>
       )}
 
       {/* Order History Modal */}

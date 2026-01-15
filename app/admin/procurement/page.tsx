@@ -76,48 +76,84 @@ export default function ProcurementPage() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th className="text-left p-3 md:p-4">{isArabic ? 'رقم الفاتورة' : 'Invoice #'}</th>
-                <th className="text-center p-3 md:p-4">{isArabic ? 'المورد' : 'Supplier'}</th>
-                <th className="text-center p-3 md:p-4">{isArabic ? 'عدد المنتجات' : 'Items'}</th>
-                <th className="text-center p-3 md:p-4">{isArabic ? 'المبلغ' : 'Amount'}</th>
-                <th className="text-center p-3 md:p-4">{isArabic ? 'التاريخ' : 'Date'}</th>
-                <th className="text-center p-3 md:p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="p-3 md:p-4 font-semibold text-primary">
-                    {order.invoiceNumber}
-                  </td>
-                  <td className="text-center p-3 md:p-4">
-                    {order.supplier || '-'}
-                  </td>
-                  <td className="text-center p-3 md:p-4">
-                    {order.items?.length || 0}
-                  </td>
-                  <td className="text-center p-3 md:p-4 font-semibold">
-                    SDG {order.totalCost.toLocaleString()}
-                  </td>
-                  <td className="text-center p-3 md:p-4 text-gray-600">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="text-center p-3 md:p-4">
-                    <Link href={`/admin/procurement/${order.id}`}>
-                      <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
-                        {isArabic ? 'عرض' : 'View'}
-                      </button>
-                    </Link>
-                  </td>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="text-left p-4">{isArabic ? 'رقم الفاتورة' : 'Invoice #'}</th>
+                  <th className="text-center p-4">{isArabic ? 'المورد' : 'Supplier'}</th>
+                  <th className="text-center p-4">{isArabic ? 'عدد المنتجات' : 'Items'}</th>
+                  <th className="text-center p-4">{isArabic ? 'المبلغ' : 'Amount'}</th>
+                  <th className="text-center p-4">{isArabic ? 'التاريخ' : 'Date'}</th>
+                  <th className="text-center p-4">{isArabic ? 'الإجراءات' : 'Actions'}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="p-4 font-semibold text-primary">
+                      {order.invoiceNumber}
+                    </td>
+                    <td className="text-center p-4">
+                      {order.supplier || '-'}
+                    </td>
+                    <td className="text-center p-4">
+                      {order.items?.length || 0}
+                    </td>
+                    <td className="text-center p-4 font-semibold">
+                      SDG {order.totalCost.toLocaleString()}
+                    </td>
+                    <td className="text-center p-4 text-gray-600">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="text-center p-4">
+                      <Link href={`/admin/procurement/${order.id}`}>
+                        <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+                          {isArabic ? 'عرض' : 'View'}
+                        </button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-4">
+            {orders.map((order) => (
+              <div key={order.id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-semibold text-primary text-lg">{order.invoiceNumber}</p>
+                    <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <Link href={`/admin/procurement/${order.id}`}>
+                    <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                      {isArabic ? 'عرض' : 'View'}
+                    </button>
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">{isArabic ? 'المورد:' : 'Supplier:'}</span>
+                    <p className="font-medium">{order.supplier || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">{isArabic ? 'المنتجات:' : 'Items:'}</span>
+                    <p className="font-medium">{order.items?.length || 0}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-600">{isArabic ? 'المبلغ:' : 'Amount:'}</span>
+                    <p className="font-semibold text-lg">SDG {order.totalCost.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

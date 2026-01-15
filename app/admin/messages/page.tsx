@@ -137,9 +137,38 @@ export default function AdminMessagesPage() {
     }
   }
 
-  const handleSelectConversation = (conv: Conversation) => {
+  const handleSelectConversation = async (conv: Conversation) => {
     const user = users.find(u => u.id === conv.id) || { id: conv.id, name: conv.name, phone: conv.phone }
     setSelectedUser(user)
+    
+    // Mark unread messages from this user as read
+    if (token && conv.unreadCount > 0) {
+      const unreadMessages = messages.filter(m => 
+        m.senderId === conv.id && !m.isRead
+      )
+      
+      for (const msg of unreadMessages) {
+        try {
+          await messagesApi.markAsRead(msg.id, token)
+        } catch (error) {
+          console.error('Error marking message as read:', error)
+        }
+      }
+      
+      // Update local state to reflect read status
+      setMessages(prevMessages => 
+        prevMessages.map(m => 
+          m.senderId === conv.id ? { ...m, isRead: true } : m
+        )
+      )
+      
+      // Update conversation unread count
+      setConversations(prevConvs => 
+        prevConvs.map(c => 
+          c.id === conv.id ? { ...c, unreadCount: 0 } : c
+        )
+      )
+    }
   }
 
   const handleStartNewChat = (user: User) => {
@@ -395,7 +424,7 @@ export default function AdminMessagesPage() {
                 <div className="p-3 border-b border-gray-200 flex items-center gap-3">
                   <button
                     onClick={() => setSelectedUser(null)}
-                    className="md:hidden text-primary"
+                    className="p-2 rounded-lg hover:bg-gray-100 text-primary font-bold text-lg"
                   >
                     ←
                   </button>

@@ -215,7 +215,10 @@ export default function AdminInvoicesPage() {
                       </select>
                     </td>
                     <td className="text-center p-4 text-gray-600">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      <div>{new Date(order.createdAt).toLocaleDateString()}</div>
+                      <div className="text-xs text-gray-400">
+                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
                     </td>
                     <td className="text-center p-4">
                       <Link href={`/admin/invoices/${order.id}`}>
@@ -238,7 +241,7 @@ export default function AdminInvoicesPage() {
                   <div>
                     <p className="font-semibold text-primary text-lg">{order.invoiceNumber}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   <Link href={`/admin/invoices/${order.id}`}>

@@ -57,10 +57,11 @@ export const authApi = {
 
 // Products API
 export const productsApi = {
-  getAll: (params?: { categoryId?: string; search?: string }) => {
+  getAll: (params?: { categoryId?: string; search?: string; includeArchived?: string }) => {
     const queryParams = new URLSearchParams()
     if (params?.categoryId) queryParams.set('categoryId', params.categoryId)
     if (params?.search) queryParams.set('search', params.search)
+    if (params?.includeArchived) queryParams.set('includeArchived', params.includeArchived)
     const query = queryParams.toString()
     return request<any[]>(`/products${query ? `?${query}` : ''}`)
   },

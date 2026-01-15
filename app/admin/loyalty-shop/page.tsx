@@ -245,15 +245,15 @@ export default function AdminLoyaltyShopPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-primary mb-8">
+      <h1 className="text-xl md:text-3xl font-bold text-primary mb-4 md:mb-8">
         🎁 {isArabic ? 'متجر الولاء' : 'Loyalty Shop'}
       </h1>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-8 border-b border-gray-200">
+      <div className="flex gap-1 md:gap-2 mb-4 md:mb-8 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-6 py-3 font-semibold transition border-b-2 ${
+          className={`px-3 md:px-6 py-2 md:py-3 font-semibold transition border-b-2 text-sm md:text-base whitespace-nowrap ${
             activeTab === 'products' 
               ? 'text-primary border-primary' 
               : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -263,17 +263,17 @@ export default function AdminLoyaltyShopPage() {
         </button>
         <button
           onClick={() => setActiveTab('redemptions')}
-          className={`px-6 py-3 font-semibold transition border-b-2 ${
+          className={`px-3 md:px-6 py-2 md:py-3 font-semibold transition border-b-2 text-sm md:text-base whitespace-nowrap ${
             activeTab === 'redemptions' 
               ? 'text-primary border-primary' 
               : 'text-gray-500 border-transparent hover:text-gray-700'
           }`}
         >
-          {isArabic ? 'طلبات الاستبدال' : 'Redemptions'}
+          {isArabic ? 'الاستبدال' : 'Redemptions'}
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-6 py-3 font-semibold transition border-b-2 ${
+          className={`px-3 md:px-6 py-2 md:py-3 font-semibold transition border-b-2 text-sm md:text-base whitespace-nowrap ${
             activeTab === 'settings' 
               ? 'text-primary border-primary' 
               : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -286,20 +286,21 @@ export default function AdminLoyaltyShopPage() {
       {/* Products Tab */}
       {activeTab === 'products' && (
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+            <h2 className="text-lg md:text-xl font-semibold">
               {isArabic ? 'منتجات متجر الولاء' : 'Loyalty Shop Products'}
             </h2>
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition"
+              className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition"
             >
               + {isArabic ? 'إضافة منتج' : 'Add Product'}
             </button>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <table className="w-full">
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-primary text-white">
                 <tr>
                   <th className="text-left p-4">{isArabic ? 'المنتج' : 'Product'}</th>
@@ -385,20 +386,90 @@ export default function AdminLoyaltyShopPage() {
               </p>
             )}
           </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {loyaltyProducts.map((lp) => (
+              <div key={lp.id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                    {lp.product.image ? (
+                      <Image
+                        src={`${UPLOADS_URL}${lp.product.image}`}
+                        alt=""
+                        width={56}
+                        height={56}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl">🎁</div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-primary">
+                      {isArabic ? lp.product.nameAr : lp.product.nameEn}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {lp.product.price.toLocaleString()} {isArabic ? 'ج.س' : 'SDG'}
+                    </p>
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                      lp.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {lp.isActive ? (isArabic ? 'نشط' : 'Active') : (isArabic ? 'غير نشط' : 'Inactive')}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div className="bg-amber-50 rounded p-2 text-center">
+                    <p className="text-gray-600 text-xs">{isArabic ? 'النقاط' : 'Points'}</p>
+                    <p className="font-bold text-amber-600">⭐ {lp.pointsRequired.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded p-2 text-center">
+                    <p className="text-gray-600 text-xs">{isArabic ? 'المخزون' : 'Stock'}</p>
+                    <p className="font-medium">
+                      {lp.stockLimit ? `${lp.stockUsed}/${lp.stockLimit}` : (isArabic ? 'غير محدود' : '∞')}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => openEditModal(lp)}
+                    className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm"
+                  >
+                    {isArabic ? 'تعديل' : 'Edit'}
+                  </button>
+                  <button
+                    onClick={() => handleRemoveProduct(lp.id)}
+                    className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded text-sm"
+                  >
+                    {isArabic ? 'إزالة' : 'Remove'}
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            {loyaltyProducts.length === 0 && (
+              <p className="text-center text-gray-600 py-8">
+                {isArabic ? 'لا توجد منتجات في متجر الولاء' : 'No products in the loyalty shop'}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
       {/* Redemptions Tab */}
       {activeTab === 'redemptions' && (
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+            <h2 className="text-lg md:text-xl font-semibold">
               {isArabic ? 'طلبات استبدال النقاط' : 'Redemption Orders'}
             </h2>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border rounded-lg px-4 py-2"
+              className="w-full sm:w-auto border rounded-lg px-4 py-2"
             >
               <option value="">{isArabic ? 'جميع الحالات' : 'All Statuses'}</option>
               <option value="pending">{isArabic ? 'قيد الانتظار' : 'Pending'}</option>
@@ -409,8 +480,9 @@ export default function AdminLoyaltyShopPage() {
             </select>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <table className="w-full">
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[900px]">
               <thead className="bg-primary text-white">
                 <tr>
                   <th className="text-left p-4">{isArabic ? 'المنتج' : 'Product'}</th>
@@ -484,14 +556,73 @@ export default function AdminLoyaltyShopPage() {
               </p>
             )}
           </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {redemptions.map((r) => (
+              <div key={r.id} className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                    {r.loyaltyProduct.product.image ? (
+                      <Image
+                        src={`${UPLOADS_URL}${r.loyaltyProduct.product.image}`}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xl">🎁</div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-primary">
+                      {isArabic ? r.loyaltyProduct.product.nameAr : r.loyaltyProduct.product.nameEn}
+                      {r.quantity > 1 && <span className="text-gray-500"> × {r.quantity}</span>}
+                    </p>
+                    <p className="text-sm text-gray-500">{r.user.name || r.user.phone}</p>
+                    <p className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className="font-bold text-amber-600 text-sm">⭐ {r.pointsSpent}</span>
+                </div>
+                
+                {(r.country || r.state || r.address) && (
+                  <div className="text-sm text-gray-600 mb-3 bg-gray-50 p-2 rounded">
+                    📍 {r.country && `${r.country}, `}{r.state && `${r.state}, `}{r.address || '-'}
+                  </div>
+                )}
+                
+                <div className="pt-3 border-t border-gray-200">
+                  <label className="text-xs text-gray-600 mb-1 block">{isArabic ? 'الحالة' : 'Status'}</label>
+                  <select
+                    value={r.status}
+                    onChange={(e) => handleUpdateRedemptionStatus(r.id, e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-medium border-0 ${getStatusColor(r.status)}`}
+                  >
+                    <option value="pending">{isArabic ? 'قيد الانتظار' : 'Pending'}</option>
+                    <option value="confirmed">{isArabic ? 'مؤكد' : 'Confirmed'}</option>
+                    <option value="shipped">{isArabic ? 'تم الشحن' : 'Shipped'}</option>
+                    <option value="delivered">{isArabic ? 'تم التسليم' : 'Delivered'}</option>
+                    <option value="cancelled">{isArabic ? 'ملغي' : 'Cancelled'}</option>
+                  </select>
+                </div>
+              </div>
+            ))}
+            
+            {redemptions.length === 0 && (
+              <p className="text-center text-gray-600 py-8">
+                {isArabic ? 'لا توجد طلبات استبدال' : 'No redemption orders'}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
       {/* Settings Tab */}
       {activeTab === 'settings' && (
         <div className="max-w-xl">
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-6">
+          <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6">
               {isArabic ? 'إعدادات متجر الولاء' : 'Loyalty Shop Settings'}
             </h2>
 
