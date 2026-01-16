@@ -97,7 +97,7 @@ export default function AdminInvoicesPage() {
   return (
     <div>
       <h1 className="text-xl md:text-3xl font-bold text-primary mb-4 md:mb-8">
-        {isArabic ? 'الفواتير' : 'Invoices'}
+        {isArabic ? 'الطلبات' : 'Orders'}
       </h1>
 
       {/* Filters */}

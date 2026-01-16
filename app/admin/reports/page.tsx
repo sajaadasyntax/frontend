@@ -75,6 +75,12 @@ export default function ReportsPage() {
   const [profitLoss, setProfitLoss] = useState<ProfitLossData | null>(null)
   const [activeTab, setActiveTab] = useState<'products' | 'customers' | 'profit' | 'single-product'>('products')
   
+  // Date filter for main reports
+  const [reportMonth, setReportMonth] = useState<string>(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+  
   // Single product report states
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [selectedProductId, setSelectedProductId] = useState<string>('')
@@ -87,7 +93,7 @@ export default function ReportsPage() {
     if (!token) return
     fetchAllReports()
     fetchProducts()
-  }, [token])
+  }, [token, reportMonth])
 
   const fetchProducts = async () => {
     try {
@@ -130,10 +136,15 @@ export default function ReportsPage() {
     
     setLoading(true)
     try {
+      // Parse month filter
+      const [year, month] = reportMonth.split('-').map(Number)
+      const startDate = new Date(year, month - 1, 1).toISOString()
+      const endDate = new Date(year, month, 0, 23, 59, 59).toISOString()
+      
       const [products, customers, pnl] = await Promise.all([
-        reportsApi.getTopProducts(token),
-        reportsApi.getTopCustomers(token),
-        reportsApi.getProfitLoss(token)
+        reportsApi.getTopProducts(token, startDate, endDate),
+        reportsApi.getTopCustomers(token, startDate, endDate),
+        reportsApi.getProfitLoss(token, startDate, endDate)
       ])
       
       setTopProducts(products)
@@ -179,13 +190,19 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-primary">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <h1 className="text-xl md:text-3xl font-bold text-primary">
           {isArabic ? 'التقارير' : 'Reports'}
         </h1>
-        <p className="text-gray-600 text-lg">
-          📅 {currentMonth}
-        </p>
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-600">{isArabic ? 'الشهر:' : 'Month:'}</label>
+          <input
+            type="month"
+            value={reportMonth}
+            onChange={(e) => setReportMonth(e.target.value)}
+            className="input-field py-2"
+          />
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -457,7 +474,7 @@ export default function ReportsPage() {
 
             {/* Summary Table */}
             {profitLoss && (
-              <div className="mt-8 grid md:grid-cols-2 gap-6">
+              <div className="mt-8 grid md:grid-cols-3 gap-6">
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-green-800 mb-2">
                     💰 {isArabic ? 'الإيرادات' : 'Revenue'}
@@ -478,6 +495,19 @@ export default function ReportsPage() {
                   </p>
                   <p className="text-sm text-red-700">
                     {isArabic ? 'تكاليف المشتريات' : 'Procurement'}: SDG {profitLoss.summary.totalProcurementCost.toLocaleString()}
+                  </p>
+                </div>
+                <div className={`p-4 rounded-lg ${profitLoss.summary.netProfit >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                  <h3 className={`font-semibold mb-2 ${profitLoss.summary.netProfit >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>
+                    📊 {isArabic ? 'صافي الربح' : 'Net Profit'}
+                  </h3>
+                  <p className={`text-2xl font-bold ${profitLoss.summary.netProfit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                    SDG {profitLoss.summary.netProfit.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {isArabic ? 'هامش الربح' : 'Margin'}: {profitLoss.summary.totalRevenue > 0 
+                      ? ((profitLoss.summary.netProfit / profitLoss.summary.totalRevenue) * 100).toFixed(1) 
+                      : 0}%
                   </p>
                 </div>
               </div>
@@ -600,7 +630,10 @@ export default function ReportsPage() {
                             <td className="p-3 text-center">{order.quantity}</td>
                             <td className="p-3 text-center">SDG {order.price?.toLocaleString()}</td>
                             <td className="p-3 text-center text-gray-600">
-                              {new Date(order.date).toLocaleDateString()}
+                              <div>{new Date(order.date).toLocaleDateString()}</div>
+                              <div className="text-xs text-gray-400">
+                                {new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
                             </td>
                           </tr>
                         ))}

@@ -92,9 +92,9 @@ export default function InventoryPage() {
   const filteredProducts = products
     .filter(p => showArchived ? p.isArchived : !p.isArchived)
     .filter(p => 
-      p.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      p.nameAr.includes(search)
-    )
+    p.nameEn.toLowerCase().includes(search.toLowerCase()) ||
+    p.nameAr.includes(search)
+  )
 
   return (
     <div>

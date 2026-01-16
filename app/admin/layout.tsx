@@ -11,7 +11,7 @@ const adminNavItems = [
   { href: '/admin', labelEn: 'Dashboard', labelAr: 'لوحة التحكم', icon: '📊' },
   { href: '/admin/categories', labelEn: 'Categories', labelAr: 'الفئات', icon: '📁' },
   { href: '/admin/inventory', labelEn: 'Inventory', labelAr: 'المخزون', icon: '📦' },
-  { href: '/admin/invoices', labelEn: 'Invoices', labelAr: 'الفواتير', icon: '🧾' },
+  { href: '/admin/invoices', labelEn: 'Orders', labelAr: 'الطلبات', icon: '🧾' },
   { href: '/admin/procurement', labelEn: 'Procurement', labelAr: 'المشتريات', icon: '🛒' },
   { href: '/admin/reports', labelEn: 'Reports', labelAr: 'التقارير', icon: '📈' },
   { href: '/admin/messages', labelEn: 'Messages', labelAr: 'الرسائل', icon: '💬' },
@@ -20,6 +20,7 @@ const adminNavItems = [
   { href: '/admin/coupons', labelEn: 'Discount Codes', labelAr: 'أكواد الخصم', icon: '🎫' },
   { href: '/admin/users', labelEn: 'Users', labelAr: 'المستخدمين', icon: '👥' },
   { href: '/admin/bank-accounts', labelEn: 'Bank Accounts', labelAr: 'الحسابات البنكية', icon: '🏦' },
+  { href: '/admin/settings', labelEn: 'Settings', labelAr: 'الإعدادات', icon: '⚙️' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

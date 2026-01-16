@@ -16,6 +16,7 @@ interface User {
   country: string
   state: string
   address: string
+  isActive: boolean
   createdAt: string
   _count?: {
     orders: number
@@ -51,6 +52,8 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [formData, setFormData] = useState(initialFormState)
@@ -137,16 +140,25 @@ export default function UsersPage() {
     }
   }
 
-  const handleDelete = async (user: User) => {
-    if (!confirm(isArabic ? `هل أنت متأكد من حذف ${user.name || user.phone}؟` : `Are you sure you want to delete ${user.name || user.phone}?`)) return
+  const handleToggleActive = async (user: User) => {
     if (!token) return
+    
+    const newStatus = !user.isActive
+    const confirmMsg = newStatus
+      ? (isArabic ? `هل تريد تفعيل ${user.name || user.phone}؟` : `Activate ${user.name || user.phone}?`)
+      : (isArabic ? `هل تريد إلغاء تفعيل ${user.name || user.phone}؟` : `Deactivate ${user.name || user.phone}?`)
+    
+    if (!confirm(confirmMsg)) return
 
     try {
-      await usersApi.delete(user.id, token)
-      toast.success(isArabic ? 'تم حذف المستخدم' : 'User deleted')
+      await usersApi.update(user.id, { isActive: newStatus }, token)
+      toast.success(newStatus 
+        ? (isArabic ? 'تم تفعيل المستخدم' : 'User activated')
+        : (isArabic ? 'تم إلغاء تفعيل المستخدم' : 'User deactivated')
+      )
       fetchUsers()
     } catch (error: any) {
-      toast.error(error.message || (isArabic ? 'خطأ في الحذف' : 'Error deleting'))
+      toast.error(error.message || (isArabic ? 'خطأ' : 'Error'))
     }
   }
 
@@ -168,11 +180,27 @@ export default function UsersPage() {
     }
   }
 
-  const filteredUsers = users.filter(u => 
-    u.name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.phone.includes(search) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  )
+  // Statistics
+  const stats = {
+    total: users.length,
+    admins: users.filter(u => u.role === 'ADMIN').length,
+    regularUsers: users.filter(u => u.role === 'USER').length,
+    active: users.filter(u => u.isActive).length,
+    inactive: users.filter(u => !u.isActive).length
+  }
+
+  const filteredUsers = users
+    .filter(u => {
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false
+      if (statusFilter === 'active' && !u.isActive) return false
+      if (statusFilter === 'inactive' && u.isActive) return false
+      return true
+    })
+    .filter(u => 
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.phone.includes(search) ||
+      u.email?.toLowerCase().includes(search.toLowerCase())
+    )
 
   return (
     <div>
@@ -185,8 +213,32 @@ export default function UsersPage() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-4 md:mb-6">
+      {/* Statistics */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4 md:mb-6">
+        <div className="bg-white rounded-xl shadow-md p-3 md:p-4 text-center">
+          <p className="text-gray-600 text-xs md:text-sm">{isArabic ? 'الإجمالي' : 'Total'}</p>
+          <p className="text-xl md:text-2xl font-bold text-primary">{stats.total}</p>
+        </div>
+        <div className="bg-purple-50 rounded-xl shadow-md p-3 md:p-4 text-center">
+          <p className="text-purple-600 text-xs md:text-sm">{isArabic ? 'المدراء' : 'Admins'}</p>
+          <p className="text-xl md:text-2xl font-bold text-purple-700">{stats.admins}</p>
+        </div>
+        <div className="bg-blue-50 rounded-xl shadow-md p-3 md:p-4 text-center">
+          <p className="text-blue-600 text-xs md:text-sm">{isArabic ? 'المستخدمين' : 'Users'}</p>
+          <p className="text-xl md:text-2xl font-bold text-blue-700">{stats.regularUsers}</p>
+        </div>
+        <div className="bg-green-50 rounded-xl shadow-md p-3 md:p-4 text-center">
+          <p className="text-green-600 text-xs md:text-sm">{isArabic ? 'نشط' : 'Active'}</p>
+          <p className="text-xl md:text-2xl font-bold text-green-700">{stats.active}</p>
+        </div>
+        <div className="bg-red-50 rounded-xl shadow-md p-3 md:p-4 text-center col-span-2 md:col-span-1">
+          <p className="text-red-600 text-xs md:text-sm">{isArabic ? 'غير نشط' : 'Inactive'}</p>
+          <p className="text-xl md:text-2xl font-bold text-red-700">{stats.inactive}</p>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-3 mb-4 md:mb-6">
         <input
           type="text"
           placeholder={isArabic ? 'البحث عن مستخدم...' : 'Search users...'}
@@ -194,6 +246,24 @@ export default function UsersPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="input-field w-full md:max-w-md"
         />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="select-field w-full md:w-auto"
+        >
+          <option value="all">{isArabic ? 'كل الأدوار' : 'All Roles'}</option>
+          <option value="ADMIN">{isArabic ? 'المدراء' : 'Admins'}</option>
+          <option value="USER">{isArabic ? 'المستخدمين' : 'Users'}</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="select-field w-full md:w-auto"
+        >
+          <option value="all">{isArabic ? 'كل الحالات' : 'All Status'}</option>
+          <option value="active">{isArabic ? 'نشط' : 'Active'}</option>
+          <option value="inactive">{isArabic ? 'غير نشط' : 'Inactive'}</option>
+        </select>
       </div>
 
       {/* Add/Edit Modal */}
@@ -414,10 +484,17 @@ export default function UsersPage() {
                           {isArabic ? 'تعديل' : 'Edit'}
                         </button>
                         <button
-                          onClick={() => handleDelete(user)}
-                          className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                          onClick={() => handleToggleActive(user)}
+                          className={`px-3 py-1 rounded hover:opacity-80 ${
+                            user.isActive 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-green-100 text-green-700'
+                          }`}
                         >
-                          {isArabic ? 'حذف' : 'Delete'}
+                          {user.isActive 
+                            ? (isArabic ? 'تعطيل' : 'Deactivate')
+                            : (isArabic ? 'تفعيل' : 'Activate')
+                          }
                         </button>
                       </div>
                     </td>
@@ -475,10 +552,14 @@ export default function UsersPage() {
                     {isArabic ? 'تعديل' : 'Edit'}
                   </button>
                   <button
-                    onClick={() => handleDelete(user)}
-                    className="px-3 py-2 bg-red-100 text-red-700 rounded text-sm"
+                    onClick={() => handleToggleActive(user)}
+                    className={`px-3 py-2 rounded text-sm ${
+                      user.isActive 
+                        ? 'bg-red-100 text-red-700' 
+                        : 'bg-green-100 text-green-700'
+                    }`}
                   >
-                    🗑️
+                    {user.isActive ? '🚫' : '✅'}
                   </button>
                 </div>
               </div>

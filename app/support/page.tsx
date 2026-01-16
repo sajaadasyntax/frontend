@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useLocaleStore } from '@/store/locale-store'
-import { bankAccountsApi, supportApi } from '@/lib/api'
+import { bankAccountsApi, supportApi, settingsApi } from '@/lib/api'
 
 interface BankAccount {
   id: string
@@ -27,6 +27,16 @@ interface SupportInfo {
   email: string
 }
 
+interface SiteSettings {
+  supportPhone?: string
+  supportEmail?: string
+  supportWhatsapp?: string
+  supportAddressEn?: string
+  supportAddressAr?: string
+  workingHoursEn?: string
+  workingHoursAr?: string
+}
+
 export default function SupportPage() {
   const t = useTranslations('support')
   const tc = useTranslations('common')
@@ -34,16 +44,19 @@ export default function SupportPage() {
 
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([])
   const [supportInfo, setSupportInfo] = useState<SupportInfo[]>([])
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Promise.all([
       bankAccountsApi.getAll(),
-      supportApi.getAll()
+      supportApi.getAll(),
+      settingsApi.get().catch(() => ({}))
     ])
-      .then(([banks, support]) => {
+      .then(([banks, support, settings]) => {
         setBankAccounts(banks)
         setSupportInfo(support)
+        setSiteSettings(settings || {})
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -108,13 +121,43 @@ export default function SupportPage() {
                 }
               </p>
               <div className="flex flex-wrap gap-4">
-                <a href="tel:+249123456789" className="flex items-center gap-2 text-secondary hover:underline">
-                  📞 +249 123 456 789
+                <a 
+                  href={`tel:${siteSettings.supportPhone || '+249123456789'}`} 
+                  className="flex items-center gap-2 text-secondary hover:underline"
+                >
+                  📞 {siteSettings.supportPhone || '+249 123 456 789'}
                 </a>
-                <a href="mailto:support@mayan.sd" className="flex items-center gap-2 text-secondary hover:underline">
-                  ✉️ support@mayan.sd
+                <a 
+                  href={`mailto:${siteSettings.supportEmail || 'support@mayan.sd'}`} 
+                  className="flex items-center gap-2 text-secondary hover:underline"
+                >
+                  ✉️ {siteSettings.supportEmail || 'support@mayan.sd'}
                 </a>
+                {siteSettings.supportWhatsapp && (
+                  <a 
+                    href={`https://wa.me/${siteSettings.supportWhatsapp.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-green-600 hover:underline"
+                  >
+                    📱 WhatsApp
+                  </a>
+                )}
               </div>
+              {(siteSettings.supportAddressEn || siteSettings.supportAddressAr) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-gray-700">
+                    📍 {isArabic ? siteSettings.supportAddressAr : siteSettings.supportAddressEn}
+                  </p>
+                </div>
+              )}
+              {(siteSettings.workingHoursEn || siteSettings.workingHoursAr) && (
+                <div className="mt-2">
+                  <p className="text-gray-600 text-sm">
+                    🕐 {isArabic ? siteSettings.workingHoursAr : siteSettings.workingHoursEn}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </section>

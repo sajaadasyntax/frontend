@@ -227,6 +227,32 @@ export default function AdminInvoiceDetailPage({ params }: { params: { id: strin
 
         {/* Status & Summary */}
         <div className="space-y-6">
+          {/* Payment Screenshot - Show FIRST for visibility */}
+          {order.paymentScreenshot && (
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-primary mb-4">
+                {isArabic ? 'إيصال الدفع (mBoK)' : 'Payment Receipt (mBoK)'}
+              </h2>
+              <a 
+                href={getImageSrc(order.paymentScreenshot)} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Image
+                  src={getImageSrc(order.paymentScreenshot)}
+                  alt="Payment Screenshot"
+                  width={300}
+                  height={400}
+                  className="rounded-lg w-full object-cover hover:opacity-80 transition-opacity cursor-zoom-in border border-gray-200"
+                />
+                <p className="text-center text-sm text-primary mt-2 hover:underline">
+                  {isArabic ? 'اضغط للتكبير' : 'Click to enlarge'}
+                </p>
+              </a>
+            </div>
+          )}
+
           {/* Status Controls */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-bold text-primary mb-4">
@@ -275,29 +301,6 @@ export default function AdminInvoiceDetailPage({ params }: { params: { id: strin
               </div>
             </div>
           </div>
-
-          {/* Payment Screenshot */}
-          {order.paymentScreenshot && (
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-primary mb-4">
-                {isArabic ? 'إيصال الدفع' : 'Payment Receipt'}
-              </h2>
-              <a 
-                href={getImageSrc(order.paymentScreenshot)} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block"
-              >
-                <Image
-                  src={getImageSrc(order.paymentScreenshot)}
-                  alt="Payment Screenshot"
-                  width={300}
-                  height={400}
-                  className="rounded-lg w-full object-cover hover:opacity-80 transition-opacity"
-                />
-              </a>
-            </div>
-          )}
 
           {/* Order Summary */}
           <div className="bg-white rounded-xl shadow-md p-6">

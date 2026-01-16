@@ -10,10 +10,15 @@ import toast from 'react-hot-toast'
 interface ProcurementOrder {
   id: string
   invoiceNumber: string
+  poNumber: string
   supplier: string
   notes: string
   totalCost: number
   createdAt: string
+  createdBy?: {
+    name: string
+    phone: string
+  }
   items: Array<{
     id: string
     quantity: number
@@ -76,21 +81,28 @@ export default function ProcurementDetailPage({ params }: { params: { id: string
           ← {isArabic ? 'رجوع' : 'Back'}
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
-          {isArabic ? 'تفاصيل الفاتورة' : 'Invoice Details'}
+          {isArabic ? 'تفاصيل طلب الشراء' : 'Procurement Order Details'}
         </h1>
       </div>
 
-      {/* Invoice Header */}
+      {/* Order Header */}
       <div className="bg-white rounded-xl shadow-md p-4 md:p-6 mb-6">
-        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
           <div>
-            <p className="text-sm text-gray-600 mb-1">{isArabic ? 'رقم الفاتورة' : 'Invoice Number'}</p>
-            <p className="text-xl md:text-2xl font-bold text-primary">{order.invoiceNumber}</p>
+            <p className="text-sm text-gray-600 mb-1">{isArabic ? 'رقم طلب الشراء' : 'PO Number'}</p>
+            <p className="text-xl md:text-2xl font-bold text-primary">{order.poNumber || order.invoiceNumber}</p>
           </div>
-          <div className="md:text-right">
-            <p className="text-sm text-gray-600 mb-1">{isArabic ? 'التاريخ' : 'Date'}</p>
+          <div>
+            <p className="text-sm text-gray-600 mb-1">{isArabic ? 'التاريخ والوقت' : 'Date & Time'}</p>
             <p className="text-lg font-semibold">{new Date(order.createdAt).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
           </div>
+          {order.createdBy && (
+            <div className="md:text-right">
+              <p className="text-sm text-gray-600 mb-1">{isArabic ? 'بواسطة' : 'Created By'}</p>
+              <p className="font-semibold text-primary">{order.createdBy.name || order.createdBy.phone}</p>
+            </div>
+          )}
         </div>
         
         {order.supplier && (

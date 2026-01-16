@@ -50,6 +50,10 @@ export default function AdminMessagesPage() {
   const [broadcastMessage, setBroadcastMessage] = useState({ subject: '', content: '' })
   const [showNewChat, setShowNewChat] = useState(false)
   const [searchUser, setSearchUser] = useState('')
+  const [searchConversation, setSearchConversation] = useState('')
+  const [showMultiSelect, setShowMultiSelect] = useState(false)
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [multiSelectMessage, setMultiSelectMessage] = useState({ subject: '', content: '' })
 
   useEffect(() => {
     if (!token) return
@@ -228,6 +232,54 @@ export default function AdminMessagesPage() {
     }
   }
 
+  const handleToggleSelectUser = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    )
+  }
+
+  const handleSelectAllUsers = () => {
+    const filteredUsers = users.filter(u => 
+      u.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
+      u.phone?.includes(searchUser)
+    )
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([])
+    } else {
+      setSelectedUsers(filteredUsers.map(u => u.id))
+    }
+  }
+
+  const handleSendMultiSelectMessage = async () => {
+    if (!multiSelectMessage.content || !token || selectedUsers.length === 0) {
+      toast.error(isArabic ? 'يرجى إدخال الرسالة واختيار المستلمين' : 'Please enter a message and select recipients')
+      return
+    }
+
+    try {
+      // Send message to each selected user
+      for (const userId of selectedUsers) {
+        await messagesApi.create({
+          content: multiSelectMessage.content,
+          subject: multiSelectMessage.subject,
+          receiverId: userId,
+          isBroadcast: false
+        }, token)
+      }
+
+      toast.success(isArabic ? `تم إرسال الرسالة إلى ${selectedUsers.length} مستخدم` : `Message sent to ${selectedUsers.length} users`)
+      setShowMultiSelect(false)
+      setMultiSelectMessage({ subject: '', content: '' })
+      setSelectedUsers([])
+      setSearchUser('')
+      fetchData()
+    } catch {
+      toast.error(isArabic ? 'خطأ في إرسال الرسالة' : 'Error sending message')
+    }
+  }
+
   const conversationMessages = getConversationMessages()
 
   return (
@@ -236,12 +288,20 @@ export default function AdminMessagesPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
           {isArabic ? 'الرسائل' : 'Messages'}
         </h1>
-        <button
-          onClick={() => setShowBroadcast(true)}
-          className="btn-primary"
-        >
-          📢 {isArabic ? 'رسالة جماعية' : 'Broadcast'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowMultiSelect(true)}
+            className="btn-outline"
+          >
+            👥 {isArabic ? 'رسالة متعددة' : 'Multi-Select'}
+          </button>
+          <button
+            onClick={() => setShowBroadcast(true)}
+            className="btn-primary"
+          >
+            📢 {isArabic ? 'رسالة للكل' : 'Broadcast All'}
+          </button>
+        </div>
       </div>
 
       {/* New Chat Modal */}
@@ -359,6 +419,123 @@ export default function AdminMessagesPage() {
         </div>
       )}
 
+      {/* Multi-Select Users Modal */}
+      {showMultiSelect && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-4 md:p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <h2 className="text-xl font-bold text-primary mb-4">
+              {isArabic ? 'إرسال رسالة لمستخدمين محددين' : 'Send Message to Selected Users'}
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-4 flex-1 overflow-hidden">
+              {/* User Selection */}
+              <div className="flex flex-col overflow-hidden">
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    value={searchUser}
+                    onChange={(e) => setSearchUser(e.target.value)}
+                    placeholder={isArabic ? 'ابحث عن مستخدم...' : 'Search users...'}
+                    className="input-field w-full"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">
+                    {isArabic ? `تم اختيار ${selectedUsers.length}` : `${selectedUsers.length} selected`}
+                  </span>
+                  <button
+                    onClick={handleSelectAllUsers}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {selectedUsers.length === users.filter(u => 
+                      u.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
+                      u.phone?.includes(searchUser)
+                    ).length 
+                      ? (isArabic ? 'إلغاء الكل' : 'Deselect All')
+                      : (isArabic ? 'اختيار الكل' : 'Select All')
+                    }
+                  </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto border rounded-lg">
+                  {users
+                    .filter(u => 
+                      u.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
+                      u.phone?.includes(searchUser)
+                    )
+                    .map((user) => (
+                      <label
+                        key={user.id}
+                        className="flex items-center gap-3 p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.includes(user.id)}
+                          onChange={() => handleToggleSelectUser(user.id)}
+                          className="w-4 h-4 text-primary"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{user.name || user.phone}</p>
+                          {user.name && <p className="text-xs text-gray-500">{user.phone}</p>}
+                        </div>
+                      </label>
+                    ))}
+                </div>
+              </div>
+              
+              {/* Message Form */}
+              <div className="flex flex-col">
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isArabic ? 'الموضوع (اختياري)' : 'Subject (optional)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={multiSelectMessage.subject}
+                    onChange={(e) => setMultiSelectMessage({ ...multiSelectMessage, subject: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {isArabic ? 'الرسالة' : 'Message'}
+                  </label>
+                  <textarea
+                    value={multiSelectMessage.content}
+                    onChange={(e) => setMultiSelectMessage({ ...multiSelectMessage, content: e.target.value })}
+                    className="input-field h-40"
+                    placeholder={isArabic ? 'اكتب رسالتك هنا...' : 'Type your message here...'}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={() => {
+                  setShowMultiSelect(false)
+                  setSelectedUsers([])
+                  setMultiSelectMessage({ subject: '', content: '' })
+                  setSearchUser('')
+                }}
+                className="btn-outline flex-1"
+              >
+                {isArabic ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleSendMultiSelectMessage}
+                disabled={selectedUsers.length === 0 || !multiSelectMessage.content}
+                className="btn-primary flex-1 disabled:opacity-50"
+              >
+                {isArabic ? `إرسال لـ ${selectedUsers.length} مستخدم` : `Send to ${selectedUsers.length} users`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
       ) : (
@@ -367,17 +544,26 @@ export default function AdminMessagesPage() {
           <div className={`w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto flex flex-col ${
             selectedUser ? 'hidden md:flex' : ''
           }`}>
-            <div className="p-3 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-primary">
-                {isArabic ? 'المحادثات' : 'Conversations'}
-              </h3>
-              <button
-                onClick={() => setShowNewChat(true)}
-                className="btn-primary text-xs px-3 py-1"
-                title={isArabic ? 'محادثة جديدة' : 'New Chat'}
-              >
-                ➕
-              </button>
+            <div className="p-3 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-primary">
+                  {isArabic ? 'المحادثات' : 'Conversations'}
+                </h3>
+                <button
+                  onClick={() => setShowNewChat(true)}
+                  className="btn-primary text-xs px-3 py-1"
+                  title={isArabic ? 'محادثة جديدة' : 'New Chat'}
+                >
+                  ➕
+                </button>
+              </div>
+              <input
+                type="text"
+                value={searchConversation}
+                onChange={(e) => setSearchConversation(e.target.value)}
+                placeholder={isArabic ? 'بحث...' : 'Search...'}
+                className="input-field w-full text-sm"
+              />
             </div>
             
             <div className="flex-1 overflow-y-auto">
@@ -387,7 +573,13 @@ export default function AdminMessagesPage() {
                 </p>
               ) : (
                 <div className="divide-y divide-gray-100">
-                  {conversations.map((conv) => (
+                  {conversations
+                    .filter(conv => 
+                      conv.name?.toLowerCase().includes(searchConversation.toLowerCase()) ||
+                      conv.phone?.includes(searchConversation) ||
+                      conv.lastMessage?.toLowerCase().includes(searchConversation.toLowerCase())
+                    )
+                    .map((conv) => (
                     <div
                       key={conv.id}
                       onClick={() => handleSelectConversation(conv)}

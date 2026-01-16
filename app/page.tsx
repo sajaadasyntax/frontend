@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
 import { useLocaleStore } from '@/store/locale-store'
-import { productsApi, categoriesApi, recipesApi } from '@/lib/api'
+import { productsApi, categoriesApi, recipesApi, settingsApi, UPLOADS_URL } from '@/lib/api'
 
 interface Product {
   id: string
@@ -45,17 +45,25 @@ export default function HomePage() {
   const [productsWithRecipes, setProductsWithRecipes] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [bannerImage, setBannerImage] = useState<string>('/images/banner.jpg')
 
   useEffect(() => {
     Promise.all([
       productsApi.getAll(searchQuery ? { search: searchQuery } : undefined),
       categoriesApi.getAll(),
-      recipesApi.getProductsWithRecipes()
+      recipesApi.getProductsWithRecipes(),
+      settingsApi.get().catch(() => ({}))
     ])
-      .then(([productsData, categoriesData, recipesData]) => {
+      .then(([productsData, categoriesData, recipesData, settingsData]) => {
         setProducts(productsData)
         setCategories(categoriesData)
         setProductsWithRecipes(recipesData)
+        if (settingsData?.bannerImage) {
+          const imgSrc = settingsData.bannerImage.startsWith('/uploads') 
+            ? `${UPLOADS_URL}${settingsData.bannerImage}` 
+            : settingsData.bannerImage
+          setBannerImage(imgSrc)
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -194,13 +202,35 @@ export default function HomePage() {
       {/* Hero Banner */}
       <section className="relative w-full h-[200px] sm:h-[300px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-lg md:rounded-none">
         <Image
-          src="/images/banner.jpg"
+          src={bannerImage}
           alt="Hero Banner"
           fill
           className="object-cover"
           priority
         />
       </section>
+
+      {/* Search Results Header with Back Button */}
+      {searchQuery && (
+        <div className="max-w-7xl mx-auto py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => window.location.href = '/'}
+              className="flex items-center gap-2 text-primary hover:underline font-medium"
+            >
+              ← {isArabic ? 'العودة للمتجر' : 'Back to Shop'}
+            </button>
+            <span className="text-gray-600">
+              {isArabic ? `نتائج البحث عن: "${searchQuery}"` : `Search results for: "${searchQuery}"`}
+            </span>
+            {products.length > 0 && (
+              <span className="text-gray-400 text-sm">
+                ({products.length} {isArabic ? 'منتج' : 'products'})
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Category Tabs */}
       <CategoryTabs />

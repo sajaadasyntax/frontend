@@ -26,6 +26,7 @@ export default function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null)
   const [formData, setFormData] = useState({
     code: '',
     discountType: 'percentage',
@@ -58,21 +59,57 @@ export default function CouponsPage() {
     if (!token) return
 
     try {
-      await couponsApi.create(formData, token)
-      toast.success(isArabic ? 'تم إضافة الكود بنجاح' : 'Coupon added successfully')
-      setShowForm(false)
-      setFormData({
-        code: '',
-        discountType: 'percentage',
-        discountValue: '',
-        minPurchase: '',
-        maxUses: '',
-        expiresAt: ''
-      })
+      if (editingCoupon) {
+        await couponsApi.update(editingCoupon.id, formData, token)
+        toast.success(isArabic ? 'تم تحديث الكود بنجاح' : 'Coupon updated successfully')
+      } else {
+        await couponsApi.create(formData, token)
+        toast.success(isArabic ? 'تم إضافة الكود بنجاح' : 'Coupon added successfully')
+      }
+      closeForm()
       fetchCoupons()
     } catch {
-      toast.error(isArabic ? 'خطأ في إضافة الكود' : 'Error adding coupon')
+      toast.error(isArabic ? 'خطأ في حفظ الكود' : 'Error saving coupon')
     }
+  }
+
+  const openAddForm = () => {
+    setEditingCoupon(null)
+    setFormData({
+      code: '',
+      discountType: 'percentage',
+      discountValue: '',
+      minPurchase: '',
+      maxUses: '',
+      expiresAt: ''
+    })
+    setShowForm(true)
+  }
+
+  const openEditForm = (coupon: Coupon) => {
+    setEditingCoupon(coupon)
+    setFormData({
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue.toString(),
+      minPurchase: coupon.minPurchase?.toString() || '',
+      maxUses: coupon.maxUses?.toString() || '',
+      expiresAt: coupon.expiresAt ? coupon.expiresAt.split('T')[0] : ''
+    })
+    setShowForm(true)
+  }
+
+  const closeForm = () => {
+    setShowForm(false)
+    setEditingCoupon(null)
+    setFormData({
+      code: '',
+      discountType: 'percentage',
+      discountValue: '',
+      minPurchase: '',
+      maxUses: '',
+      expiresAt: ''
+    })
   }
 
   const toggleCouponStatus = async (couponId: string, currentStatus: boolean) => {
@@ -107,19 +144,22 @@ export default function CouponsPage() {
           {isArabic ? 'أكواد الخصم' : 'Discount Codes'}
         </h1>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openAddForm}
           className="btn-primary w-full sm:w-auto"
         >
           ➕ {isArabic ? 'إضافة كود' : 'Add Coupon'}
         </button>
       </div>
 
-      {/* Add Coupon Modal */}
+      {/* Add/Edit Coupon Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4">
             <h2 className="text-xl font-bold text-primary mb-4">
-              {isArabic ? 'إضافة كود خصم جديد' : 'Add New Coupon'}
+              {editingCoupon 
+                ? (isArabic ? 'تعديل كود الخصم' : 'Edit Coupon')
+                : (isArabic ? 'إضافة كود خصم جديد' : 'Add New Coupon')
+              }
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -134,6 +174,7 @@ export default function CouponsPage() {
                   className="input-field"
                   placeholder="SAVE10"
                   required
+                  disabled={!!editingCoupon}
                 />
               </div>
 
@@ -210,13 +251,16 @@ export default function CouponsPage() {
               <div className="flex gap-4 mt-6">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={closeForm}
                   className="btn-outline flex-1"
                 >
                   {isArabic ? 'إلغاء' : 'Cancel'}
                 </button>
                 <button type="submit" className="btn-primary flex-1">
-                  {isArabic ? 'إضافة' : 'Add'}
+                  {editingCoupon 
+                    ? (isArabic ? 'حفظ' : 'Save')
+                    : (isArabic ? 'إضافة' : 'Add')
+                  }
                 </button>
               </div>
             </form>
@@ -281,12 +325,20 @@ export default function CouponsPage() {
                       </button>
                     </td>
                     <td className="text-center p-4">
-                      <button
-                        onClick={() => handleDelete(coupon.id)}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
-                      >
-                        {isArabic ? 'حذف' : 'Delete'}
-                      </button>
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => openEditForm(coupon)}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                        >
+                          {isArabic ? 'تعديل' : 'Edit'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(coupon.id)}
+                          className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                        >
+                          {isArabic ? 'حذف' : 'Delete'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -343,12 +395,20 @@ export default function CouponsPage() {
                   </div>
                 </div>
                 
-                <button
-                  onClick={() => handleDelete(coupon.id)}
-                  className="w-full px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
-                >
-                  {isArabic ? 'حذف' : 'Delete'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openEditForm(coupon)}
+                    className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
+                  >
+                    {isArabic ? 'تعديل' : 'Edit'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(coupon.id)}
+                    className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
+                  >
+                    {isArabic ? 'حذف' : 'Delete'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

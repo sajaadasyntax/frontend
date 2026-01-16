@@ -206,14 +206,29 @@ export const reportsApi = {
   getAll: (token: string) =>
     request<any>('/reports', { token }),
   
-  getTopProducts: (token: string) =>
-    request<any[]>('/reports/top-products', { token }),
+  getTopProducts: (token: string, from?: string, to?: string) => {
+    const params = new URLSearchParams()
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    const query = params.toString()
+    return request<any[]>(`/reports/top-products${query ? `?${query}` : ''}`, { token })
+  },
   
-  getTopCustomers: (token: string) =>
-    request<any[]>('/reports/top-customers', { token }),
+  getTopCustomers: (token: string, from?: string, to?: string) => {
+    const params = new URLSearchParams()
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    const query = params.toString()
+    return request<any[]>(`/reports/top-customers${query ? `?${query}` : ''}`, { token })
+  },
   
-  getProfitLoss: (token: string) =>
-    request<any>('/reports/profit-loss', { token }),
+  getProfitLoss: (token: string, from?: string, to?: string) => {
+    const params = new URLSearchParams()
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    const query = params.toString()
+    return request<any>(`/reports/profit-loss${query ? `?${query}` : ''}`, { token })
+  },
 }
 
 // Procurement API
@@ -314,5 +329,28 @@ export default {
   reports: reportsApi,
   recipes: recipesApi,
   loyaltyShop: loyaltyShopApi,
+}
+
+// Site Settings API
+export const settingsApi = {
+  get: () =>
+    request<any>('/settings'),
+  
+  update: (data: any, token: string) =>
+    request<any>('/settings', { method: 'PUT', body: data, token }),
+  
+  uploadBanner: async (file: File, token: string) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    
+    const res = await fetch(`${API_BASE}/settings/banner`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData
+    })
+    
+    if (!res.ok) throw new Error('Upload failed')
+    return res.json()
+  }
 }
 

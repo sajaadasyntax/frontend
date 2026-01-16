@@ -8,7 +8,7 @@ import { useLocaleStore } from '@/store/locale-store'
 import { useAuthStore } from '@/store/auth-store'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { loyaltyShopApi } from '@/lib/api'
+import { loyaltyShopApi, messagesApi } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export default function Header() {
@@ -23,6 +23,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loyaltyShopUnlocked, setLoyaltyShopUnlocked] = useState(false)
   const [hasShownUnlockMessage, setHasShownUnlockMessage] = useState(false)
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
 
   // Redirect admin users to admin panel (they shouldn't access user pages)
   useEffect(() => {
@@ -62,8 +63,38 @@ export default function Header() {
   useEffect(() => {
     if (isAuthenticated && token && user?.role !== 'ADMIN') {
       checkLoyaltyAccess()
+      checkUnreadMessages()
     }
   }, [isAuthenticated, token, user?.role, checkLoyaltyAccess])
+
+  // Check for unread messages
+  const checkUnreadMessages = async () => {
+    if (!token || user?.role === 'ADMIN') return
+
+    try {
+      const messages = await messagesApi.getAll(token, 'inbox')
+      const unreadCount = messages.filter((m: any) => !m.isRead).length
+      setUnreadMessageCount(unreadCount)
+
+      // Show notification for unread messages on first check
+      const notifKey = `msg_notif_shown_${user?.id}`
+      const lastShown = localStorage.getItem(notifKey)
+      const now = Date.now()
+      
+      // Only show notification once per hour
+      if (unreadCount > 0 && (!lastShown || (now - parseInt(lastShown)) > 3600000)) {
+        localStorage.setItem(notifKey, now.toString())
+        toast.success(
+          locale === 'ar'
+            ? `📬 لديك ${unreadCount} رسالة جديدة`
+            : `📬 You have ${unreadCount} new message${unreadCount > 1 ? 's' : ''}`,
+          { duration: 5000 }
+        )
+      }
+    } catch (error) {
+      console.error('Error checking messages:', error)
+    }
+  }
 
   const toggleLocale = () => {
     const newLocale = locale === 'en' ? 'ar' : 'en'
@@ -222,14 +253,19 @@ export default function Header() {
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           onClick={() => setShowUserMenu(false)}
                         >
-                          الفواتير / Invoices
+                          الطلبات / Orders
                         </Link>
                         <Link
                           href="/messages"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 relative"
                           onClick={() => setShowUserMenu(false)}
                         >
                           الرسائل / Messages
+                          {unreadMessageCount > 0 && (
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                              {unreadMessageCount}
+                            </span>
+                          )}
                         </Link>
                         {loyaltyShopUnlocked && (
                           <Link
