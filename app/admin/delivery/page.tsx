@@ -152,7 +152,7 @@ export default function DeliveryZonesPage() {
   }
 
   // Get unique countries for grouping
-  const countries = [...new Set(zones.map(z => z.country))].sort()
+  const countries = Array.from(new Set(zones.map(z => z.country))).sort()
 
   // Filter zones by search
   const filteredZones = zones.filter(z => 
