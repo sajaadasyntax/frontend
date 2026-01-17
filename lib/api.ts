@@ -343,7 +343,7 @@ export const settingsApi = {
     const formData = new FormData()
     formData.append('image', file)
     
-    const res = await fetch(`${API_BASE}/settings/banner`, {
+    const res = await fetch(`${API_URL}/settings/banner`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData
