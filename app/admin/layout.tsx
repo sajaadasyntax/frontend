@@ -20,6 +20,7 @@ const adminNavItems = [
   { href: '/admin/coupons', labelEn: 'Discount Codes', labelAr: 'أكواد الخصم', icon: '🎫' },
   { href: '/admin/users', labelEn: 'Users', labelAr: 'المستخدمين', icon: '👥' },
   { href: '/admin/bank-accounts', labelEn: 'Bank Accounts', labelAr: 'الحسابات البنكية', icon: '🏦' },
+  { href: '/admin/delivery', labelEn: 'Delivery Zones', labelAr: 'مناطق التوصيل', icon: '🚚' },
   { href: '/admin/settings', labelEn: 'Settings', labelAr: 'الإعدادات', icon: '⚙️' },
 ]
 

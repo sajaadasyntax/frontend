@@ -207,10 +207,10 @@ export default function Header() {
           </Link>
 
           {/* User Menu */}
-          <div className="relative">
+          <div className="relative flex items-center">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center"
+              className="flex items-center justify-center p-1"
             >
               <Image
                 src="/images/User Icon.svg"
@@ -222,7 +222,7 @@ export default function Header() {
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                 {isAuthenticated && user ? (
                   <>
                     <div className="px-4 py-2 border-b border-gray-100">
