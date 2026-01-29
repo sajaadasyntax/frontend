@@ -65,7 +65,7 @@ export default function Header() {
       checkLoyaltyAccess()
       checkUnreadMessages()
     }
-  }, [isAuthenticated, token, user?.role, checkLoyaltyAccess])
+  }, [isAuthenticated, token, user?.role, pathname, checkLoyaltyAccess])
 
   // Check for unread messages
   const checkUnreadMessages = async () => {
@@ -74,22 +74,28 @@ export default function Header() {
     try {
       const messages = await messagesApi.getAll(token, 'inbox')
       const unreadCount = messages.filter((m: any) => !m.isRead).length
+      
+      // Get previous unread count
+      const prevCount = unreadMessageCount
       setUnreadMessageCount(unreadCount)
 
-      // Show notification for unread messages on first check
-      const notifKey = `msg_notif_shown_${user?.id}`
-      const lastShown = localStorage.getItem(notifKey)
-      const now = Date.now()
+      // Show notification only if there are NEW unread messages (count increased)
+      const notifKey = `msg_notif_count_${user?.id}`
+      const lastCount = localStorage.getItem(notifKey)
+      const lastCountNum = lastCount ? parseInt(lastCount) : 0
       
-      // Only show notification once per hour
-      if (unreadCount > 0 && (!lastShown || (now - parseInt(lastShown)) > 3600000)) {
-        localStorage.setItem(notifKey, now.toString())
+      // Only show notification if count increased (new messages arrived)
+      if (unreadCount > 0 && unreadCount > lastCountNum && pathname !== '/messages') {
+        localStorage.setItem(notifKey, unreadCount.toString())
         toast.success(
           locale === 'ar'
             ? `📬 لديك ${unreadCount} رسالة جديدة`
             : `📬 You have ${unreadCount} new message${unreadCount > 1 ? 's' : ''}`,
           { duration: 5000 }
         )
+      } else if (unreadCount === 0) {
+        // Reset the counter when all messages are read
+        localStorage.setItem(notifKey, '0')
       }
     } catch (error) {
       console.error('Error checking messages:', error)

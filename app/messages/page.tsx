@@ -66,6 +66,16 @@ export default function MessagesPage() {
         messagesApi.getAll(token, 'sent')
       ])
       
+      // Mark all unread inbox messages as read
+      const unreadInboxMessages = inboxData.filter((m: Message) => !m.isRead && m.senderId !== user?.id)
+      for (const msg of unreadInboxMessages) {
+        try {
+          await messagesApi.markAsRead(msg.id, token)
+        } catch (error) {
+          console.error('Error marking message as read:', error)
+        }
+      }
+      
       // Combine and deduplicate messages
       const allMessages = [...inboxData, ...sentData]
       const uniqueMessages = allMessages.filter((msg, index, self) =>
@@ -76,7 +86,10 @@ export default function MessagesPage() {
       const sorted = uniqueMessages.sort((a: Message, b: Message) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       )
-      setMessages(sorted)
+      
+      // Mark all messages as read in the UI
+      const markedMessages = sorted.map(m => ({ ...m, isRead: true }))
+      setMessages(markedMessages)
     } catch {
       toast.error('Error loading messages')
     } finally {

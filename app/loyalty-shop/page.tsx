@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { useLocaleStore } from '@/store/locale-store'
 import { useAuthStore } from '@/store/auth-store'
 import { loyaltyShopApi, UPLOADS_URL } from '@/lib/api'
-import Header from '@/components/Header'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
@@ -168,7 +167,6 @@ export default function LoyaltyShopPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
         </div>
@@ -179,7 +177,6 @@ export default function LoyaltyShopPage() {
   if (!token) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="bg-white rounded-2xl shadow-lg p-12">
             <div className="text-6xl mb-6">🔒</div>
@@ -209,7 +206,6 @@ export default function LoyaltyShopPage() {
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-lg p-12 text-center">
             <div className="text-7xl mb-6">🎁</div>
@@ -254,8 +250,6 @@ export default function LoyaltyShopPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 rounded-2xl p-8 mb-8 text-white">

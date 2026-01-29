@@ -441,10 +441,19 @@ export default function UsersPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className={`hover:bg-gray-50 ${!user.isActive ? 'bg-red-50 opacity-75' : ''}`}>
                     <td className="p-4">
-                      <p className="font-semibold text-primary">{user.name || '-'}</p>
-                      {user.email && <p className="text-sm text-gray-500">{user.email}</p>}
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <p className="font-semibold text-primary">{user.name || '-'}</p>
+                          {user.email && <p className="text-sm text-gray-500">{user.email}</p>}
+                        </div>
+                        {!user.isActive && (
+                          <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">
+                            {isArabic ? 'غير نشط' : 'Inactive'}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="text-center p-4 font-mono">{user.phone}</td>
                     <td className="text-center p-4">
@@ -507,10 +516,17 @@ export default function UsersPage() {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {filteredUsers.map((user) => (
-              <div key={user.id} className="bg-white rounded-xl shadow-md p-4">
+              <div key={user.id} className={`bg-white rounded-xl shadow-md p-4 ${!user.isActive ? 'bg-red-50 border border-red-200' : ''}`}>
                 <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="font-semibold text-primary">{user.name || '-'}</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-semibold text-primary">{user.name || '-'}</p>
+                      {!user.isActive && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">
+                          {isArabic ? 'غير نشط' : 'Inactive'}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">{user.phone}</p>
                     {user.email && <p className="text-xs text-gray-400">{user.email}</p>}
                   </div>
