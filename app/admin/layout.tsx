@@ -76,15 +76,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <h1 className="text-lg font-bold">
           {isArabic ? 'لوحة الإدارة' : 'Admin Panel'}
         </h1>
-        <button
-          onClick={handleLogout}
-          className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
-          title={isArabic ? 'تسجيل الخروج' : 'Logout'}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const newLocale = locale === 'en' ? 'ar' : 'en'
+              useLocaleStore.getState().setLocale(newLocale)
+              window.location.reload()
+            }}
+            className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10 text-sm font-medium"
+            title={locale === 'en' ? 'العربية' : 'English'}
+          >
+            {locale === 'en' ? 'عربي' : 'En'}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10"
+            title={isArabic ? 'تسجيل الخروج' : 'Logout'}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile Sidebar Overlay */}

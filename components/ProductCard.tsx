@@ -18,6 +18,7 @@ interface ProductCardProps {
   loyaltyPointsEnabled?: boolean
   loyaltyPointsValue?: number
   hasRecipes?: boolean
+  stock?: number
 }
 
 export default function ProductCard({ 
@@ -31,7 +32,8 @@ export default function ProductCard({
   discount,
   loyaltyPointsEnabled,
   loyaltyPointsValue,
-  hasRecipes
+  hasRecipes,
+  stock = 0
 }: ProductCardProps) {
   const t = useTranslations('home')
   const tc = useTranslations('common')
@@ -39,6 +41,7 @@ export default function ProductCard({
   
   const name = locale === 'ar' ? nameAr : nameEn
   const displayPrice = discount ? price - (price * discount / 100) : price
+  const isOutOfStock = stock <= 0
 
   const getImageSrc = (img?: string) => {
     if (!img) return '/images/product-tube.png'
@@ -56,8 +59,15 @@ export default function ProductCard({
             alt={name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-cover hover:scale-105 transition-transform"
+            className={`object-cover hover:scale-105 transition-transform ${isOutOfStock ? 'opacity-60 grayscale' : ''}`}
           />
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+              <span className="bg-red-500 text-white px-3 py-1 rounded-lg text-xs md:text-sm font-bold">
+                {locale === 'ar' ? 'نفذت الكمية' : 'Out of Stock'}
+              </span>
+            </div>
+          )}
         </div>
       </Link>
 
@@ -65,29 +75,53 @@ export default function ProductCard({
       <h3 className="text-center text-primary font-semibold text-[11px] md:text-[13px] mb-1 md:mb-2 line-clamp-2">{name}</h3>
 
       {/* Loyalty Points */}
-      {loyaltyPointsEnabled && loyaltyPointsValue && loyaltyPointsValue > 0 && (
+      {!isOutOfStock && loyaltyPointsEnabled && loyaltyPointsValue && loyaltyPointsValue > 0 && (
         <p className="text-center text-amber-600 text-[10px] md:text-xs mb-1 md:mb-2">
           ⭐ +{loyaltyPointsValue} {locale === 'ar' ? 'نقطة' : 'pts'}
         </p>
       )}
 
-      {/* Price */}
-      <div className="text-center mb-2 md:mb-3">
-        <span className="text-gray-600 text-xs md:text-sm block md:inline">
-          {tc('currency')} {displayPrice.toLocaleString()}
-        </span>
-        {discount && discount > 0 && (
-          <span className="text-gray-400 line-through text-[10px] md:text-xs ml-0 md:ml-2 block md:inline">
-            {tc('currency')} {price.toLocaleString()}
+      {/* Price - Hidden for out of stock */}
+      {!isOutOfStock && (
+        <div className="text-center mb-2 md:mb-3">
+          <span className="text-gray-600 text-xs md:text-sm block md:inline">
+            {tc('currency')} {displayPrice.toLocaleString()}
           </span>
-        )}
-      </div>
+          {discount && discount > 0 && (
+            <span className="text-gray-400 line-through text-[10px] md:text-xs ml-0 md:ml-2 block md:inline">
+              {tc('currency')} {price.toLocaleString()}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Out of Stock Message */}
+      {isOutOfStock && (
+        <div className="text-center mb-2 md:mb-3">
+          <span className="text-red-600 font-semibold text-xs md:text-sm">
+            {locale === 'ar' ? 'نفذت الكمية' : 'Out of Stock'}
+          </span>
+        </div>
+      )}
 
       {/* Shop Now Button */}
       <Link href={`/products/${id}`}>
-        <button className="btn-primary w-full text-[10px] md:text-sm py-1.5 md:py-2 px-2 md:px-5">
+        <button 
+          className={`w-full text-[10px] md:text-sm py-1.5 md:py-2 px-2 md:px-5 rounded-lg transition-colors flex items-center justify-center gap-1 md:gap-2 ${
+            isOutOfStock 
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+              : 'btn-primary'
+          }`}
+          disabled={isOutOfStock}
+        >
           {t('shopNow')}
-          <Image src="/images/Proceed Icon.svg" alt="proceed" width={12} height={12} className="w-3 h-3 md:w-[14px] md:h-[14px]" />
+          <Image 
+            src="/images/Proceed Icon.svg" 
+            alt="proceed" 
+            width={12} 
+            height={12} 
+            className={`w-3 h-3 md:w-[14px] md:h-[14px] ${isOutOfStock ? 'opacity-50' : ''}`} 
+          />
         </button>
       </Link>
 

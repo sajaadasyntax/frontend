@@ -171,13 +171,15 @@ export default function SupportPage() {
               {bankAccounts.map((bank) => (
                 <div key={bank.id} className="bg-gray-50 rounded-lg overflow-hidden">
                   {bank.image && (
-                    <Image
-                      src={bank.image}
-                      alt={isArabic ? bank.bankNameAr : bank.bankNameEn}
-                      width={400}
-                      height={250}
-                      className="w-full h-48 object-cover"
-                    />
+                    <div className="w-full h-48 md:h-64 bg-white flex items-center justify-center p-2">
+                      <Image
+                        src={bank.image}
+                        alt={isArabic ? bank.bankNameAr : bank.bankNameEn}
+                        width={400}
+                        height={250}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
                   )}
                   <div className="p-4">
                     <h3 className="font-bold text-primary mb-2">

@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 interface ProcurementOrder {
   id: string
   invoiceNumber: string
+  poNumber: number
   supplier: string
   notes: string
   totalCost: number
@@ -82,7 +83,7 @@ export default function ProcurementPage() {
             <table className="w-full min-w-[700px]">
               <thead className="bg-primary text-white">
                 <tr>
-                  <th className="text-left p-4">{isArabic ? 'رقم الفاتورة' : 'Invoice #'}</th>
+                  <th className="text-left p-4">{isArabic ? 'رقم طلب الشراء' : 'PO Number'}</th>
                   <th className="text-center p-4">{isArabic ? 'المورد' : 'Supplier'}</th>
                   <th className="text-center p-4">{isArabic ? 'عدد المنتجات' : 'Items'}</th>
                   <th className="text-center p-4">{isArabic ? 'المبلغ' : 'Amount'}</th>
@@ -94,7 +95,7 @@ export default function ProcurementPage() {
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="p-4 font-semibold text-primary">
-                      {order.invoiceNumber}
+                      PO-{order.poNumber}
                     </td>
                     <td className="text-center p-4">
                       {order.supplier || '-'}
@@ -127,7 +128,7 @@ export default function ProcurementPage() {
               <div key={order.id} className="bg-white rounded-xl shadow-md p-4">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <p className="font-semibold text-primary text-lg">{order.invoiceNumber}</p>
+                    <p className="font-semibold text-primary text-lg">PO-{order.poNumber}</p>
                     <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <Link href={`/admin/procurement/${order.id}`}>

@@ -22,7 +22,25 @@ interface ProcurementItem {
   costPrice: number
 }
 
-export default function NewProcurementPage() {
+interface ProcurementOrder {
+  id: string
+  poNumber: number
+  supplier: string
+  notes: string
+  totalCost: number
+  items: Array<{
+    id: string
+    quantity: number
+    costPrice: number
+    product: {
+      id: string
+      nameEn: string
+      nameAr: string
+    }
+  }>
+}
+
+export default function EditProcurementPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { locale } = useLocaleStore()
   const { token } = useAuthStore()
@@ -35,10 +53,13 @@ export default function NewProcurementPage() {
   const [supplier, setSupplier] = useState('')
   const [notes, setNotes] = useState('')
   const [search, setSearch] = useState('')
+  const [originalOrder, setOriginalOrder] = useState<ProcurementOrder | null>(null)
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (token) {
+      Promise.all([fetchProducts(), fetchProcurement()])
+    }
+  }, [token])
 
   const fetchProducts = async () => {
     try {
@@ -46,6 +67,27 @@ export default function NewProcurementPage() {
       setProducts(data)
     } catch {
       toast.error('Error loading products')
+    }
+  }
+
+  const fetchProcurement = async () => {
+    try {
+      const data = await procurementApi.getById(params.id, token!)
+      setOriginalOrder(data)
+      setSupplier(data.supplier || '')
+      setNotes(data.notes || '')
+      
+      // Convert existing items to the editable format
+      const convertedItems = data.items.map((item: any) => ({
+        productId: item.product.id,
+        productName: isArabic ? item.product.nameAr : item.product.nameEn,
+        quantity: item.quantity,
+        costPrice: item.costPrice
+      }))
+      setItems(convertedItems)
+    } catch {
+      toast.error(isArabic ? 'خطأ في تحميل الطلب' : 'Error loading order')
+      router.push('/admin/procurement')
     } finally {
       setLoading(false)
     }
@@ -100,7 +142,7 @@ export default function NewProcurementPage() {
 
     setSubmitting(true)
     try {
-      await procurementApi.create({
+      await procurementApi.update(params.id, {
         items: items.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -111,32 +153,41 @@ export default function NewProcurementPage() {
         totalCost
       }, token)
 
-      toast.success(isArabic ? 'تم إنشاء طلب الشراء بنجاح' : 'Procurement order created')
-      router.push('/admin/procurement')
+      toast.success(isArabic ? 'تم تحديث طلب الشراء بنجاح' : 'Procurement order updated')
+      router.push(`/admin/procurement/${params.id}`)
     } catch {
-      toast.error(isArabic ? 'خطأ في إنشاء الطلب' : 'Error creating order')
+      toast.error(isArabic ? 'خطأ في تحديث الطلب' : 'Error updating order')
     } finally {
       setSubmitting(false)
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/procurement" className="text-primary hover:underline">
+        <Link href={`/admin/procurement/${params.id}`} className="text-primary hover:underline">
           ← {isArabic ? 'رجوع' : 'Back'}
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
-          {isArabic ? 'طلب شراء جديد' : 'New Procurement Order'}
+          {isArabic ? 'تعديل طلب الشراء' : 'Edit Procurement Order'}
+          {originalOrder && ` - PO-${originalOrder.poNumber}`}
         </h1>
       </div>
 
-      {/* Info Note */}
-      <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <p className="text-sm text-blue-800">
-          💡 {isArabic 
-            ? 'أدخل سعر التكلفة لكل منتج في هذه الدفعة. سعر التكلفة يمكن أن يختلف بين الدفعات المختلفة.'
-            : 'Enter the cost price for each product in this batch. Cost price can vary between different procurement batches.'
+      {/* Warning Note */}
+      <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+        <p className="text-sm text-yellow-800">
+          ⚠️ {isArabic 
+            ? 'تحذير: تعديل طلب الشراء سيؤثر على مستويات المخزون. سيتم إلغاء الطلب القديم وإنشاء طلب جديد.'
+            : 'Warning: Editing a procurement order will affect inventory levels. The old order will be reversed and the new order will be applied.'
           }
         </p>
       </div>
@@ -159,26 +210,22 @@ export default function NewProcurementPage() {
             />
           </div>
 
-          {loading ? (
-            <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-h-[400px] overflow-y-auto">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="border border-gray-200 rounded-lg p-3 md:p-4 hover:border-secondary cursor-pointer transition-colors"
-                  onClick={() => addItem(product)}
-                >
-                  <p className="font-semibold text-primary text-sm md:text-base">
-                    {isArabic ? product.nameAr : product.nameEn}
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-600">
-                    {isArabic ? 'المخزون الحالي:' : 'Current Stock:'} {product.stock}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-h-[400px] overflow-y-auto">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="border border-gray-200 rounded-lg p-3 md:p-4 hover:border-secondary cursor-pointer transition-colors"
+                onClick={() => addItem(product)}
+              >
+                <p className="font-semibold text-primary text-sm md:text-base">
+                  {isArabic ? product.nameAr : product.nameEn}
+                </p>
+                <p className="text-xs md:text-sm text-gray-600">
+                  {isArabic ? 'المخزون الحالي:' : 'Current Stock:'} {product.stock}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Order Summary */}
@@ -294,8 +341,8 @@ export default function NewProcurementPage() {
                 className="btn-primary w-full"
               >
                 {submitting
-                  ? (isArabic ? 'جاري الإنشاء...' : 'Creating...')
-                  : (isArabic ? 'إنشاء طلب الشراء' : 'Create Order')
+                  ? (isArabic ? 'جاري التحديث...' : 'Updating...')
+                  : (isArabic ? 'حفظ التعديلات' : 'Save Changes')
                 }
               </button>
             </div>
@@ -305,4 +352,3 @@ export default function NewProcurementPage() {
     </div>
   )
 }
-

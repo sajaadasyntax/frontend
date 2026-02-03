@@ -76,13 +76,20 @@ export default function ProcurementDetailPage({ params }: { params: { id: string
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/procurement" className="text-primary hover:underline">
-          ← {isArabic ? 'رجوع' : 'Back'}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/procurement" className="text-primary hover:underline">
+            ← {isArabic ? 'رجوع' : 'Back'}
+          </Link>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary">
+            {isArabic ? 'تفاصيل طلب الشراء' : 'Procurement Order Details'}
+          </h1>
+        </div>
+        <Link href={`/admin/procurement/${order.id}/edit`}>
+          <button className="btn-primary text-sm">
+            ✏️ {isArabic ? 'تعديل' : 'Edit'}
+          </button>
         </Link>
-        <h1 className="text-2xl md:text-3xl font-bold text-primary">
-          {isArabic ? 'تفاصيل طلب الشراء' : 'Procurement Order Details'}
-        </h1>
       </div>
 
       {/* Order Header */}

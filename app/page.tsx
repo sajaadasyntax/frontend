@@ -20,6 +20,7 @@ interface Product {
   categoryId: string
   loyaltyPointsEnabled: boolean
   loyaltyPointsValue: number
+  stock: number
 }
 
 interface Category {
@@ -124,6 +125,7 @@ export default function HomePage() {
                     loyaltyPointsEnabled={product.loyaltyPointsEnabled}
                     loyaltyPointsValue={product.loyaltyPointsValue}
                     hasRecipes={productsWithRecipes.includes(product.id)}
+                    stock={product.stock}
                   />
                 ))}
               </div>

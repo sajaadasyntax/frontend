@@ -207,7 +207,7 @@ export default function ReportsPage() {
 
       {/* Summary Cards */}
       {profitLoss && (
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6">
             <p className="text-gray-600 text-sm">{isArabic ? 'إجمالي الإيرادات' : 'Total Revenue'}</p>
             <p className="text-2xl font-bold text-green-600 mt-1">
@@ -221,15 +221,9 @@ export default function ReportsPage() {
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-md p-6">
-            <p className="text-gray-600 text-sm">{isArabic ? 'تكاليف المشتريات' : 'Procurement Costs'}</p>
-            <p className="text-2xl font-bold text-orange-600 mt-1">
-              SDG {profitLoss.summary.totalProcurementCost.toLocaleString()}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-6">
             <p className="text-gray-600 text-sm">{isArabic ? 'صافي الربح' : 'Net Profit'}</p>
-            <p className={`text-2xl font-bold mt-1 ${profitLoss.summary.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              SDG {profitLoss.summary.netProfit.toLocaleString()}
+            <p className={`text-2xl font-bold mt-1 ${profitLoss.summary.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              SDG {profitLoss.summary.totalProfit.toLocaleString()}
             </p>
           </div>
         </div>
@@ -488,25 +482,22 @@ export default function ReportsPage() {
                     📉 {isArabic ? 'التكاليف' : 'Costs'}
                   </h3>
                   <p className="text-2xl font-bold text-red-600">
-                    SDG {(profitLoss.summary.totalCost + profitLoss.summary.totalProcurementCost).toLocaleString()}
+                    SDG {profitLoss.summary.totalCost.toLocaleString()}
                   </p>
                   <p className="text-sm text-red-700 mt-1">
-                    {isArabic ? 'تكاليف المنتجات' : 'Product costs'}: SDG {profitLoss.summary.totalCost.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-red-700">
-                    {isArabic ? 'تكاليف المشتريات' : 'Procurement'}: SDG {profitLoss.summary.totalProcurementCost.toLocaleString()}
+                    {isArabic ? 'تكلفة البضائع المباعة' : 'Cost of goods sold'}
                   </p>
                 </div>
-                <div className={`p-4 rounded-lg ${profitLoss.summary.netProfit >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-                  <h3 className={`font-semibold mb-2 ${profitLoss.summary.netProfit >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>
+                <div className={`p-4 rounded-lg ${profitLoss.summary.totalProfit >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                  <h3 className={`font-semibold mb-2 ${profitLoss.summary.totalProfit >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>
                     📊 {isArabic ? 'صافي الربح' : 'Net Profit'}
                   </h3>
-                  <p className={`text-2xl font-bold ${profitLoss.summary.netProfit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                    SDG {profitLoss.summary.netProfit.toLocaleString()}
+                  <p className={`text-2xl font-bold ${profitLoss.summary.totalProfit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                    SDG {profitLoss.summary.totalProfit.toLocaleString()}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
                     {isArabic ? 'هامش الربح' : 'Margin'}: {profitLoss.summary.totalRevenue > 0 
-                      ? ((profitLoss.summary.netProfit / profitLoss.summary.totalRevenue) * 100).toFixed(1) 
+                      ? ((profitLoss.summary.totalProfit / profitLoss.summary.totalRevenue) * 100).toFixed(1) 
                       : 0}%
                   </p>
                 </div>

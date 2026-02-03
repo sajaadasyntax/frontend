@@ -93,6 +93,9 @@ export const categoriesApi = {
   
   delete: (id: string, token: string) =>
     request<void>(`/categories/${id}`, { method: 'DELETE', token }),
+  
+  updateOrder: (categories: Array<{ id: string; sortOrder: number }>, token: string) =>
+    request<any>('/categories/reorder', { method: 'POST', body: { categories }, token }),
 }
 
 // Orders API
@@ -241,6 +244,9 @@ export const procurementApi = {
   
   create: (data: any, token: string) =>
     request<any>('/procurement', { method: 'POST', body: data, token }),
+  
+  update: (id: string, data: any, token: string) =>
+    request<any>(`/procurement/${id}`, { method: 'PUT', body: data, token }),
 }
 
 // Recipes API

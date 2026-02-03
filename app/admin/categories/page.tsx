@@ -12,6 +12,7 @@ interface Category {
   nameAr: string
   description: string | null
   parentId: string | null
+  sortOrder: number
   parent?: Category | null
   children?: Category[]
   _count?: {
@@ -150,10 +151,49 @@ export default function CategoriesPage() {
     return allCategories.filter(cat => !excludeIds.includes(cat.id))
   }
 
-  const renderCategory = (category: Category, level: number = 0) => {
+  const handleMoveUp = async (category: Category, siblings: Category[]) => {
+    if (!token) return
+    const currentIndex = siblings.findIndex(c => c.id === category.id)
+    if (currentIndex <= 0) return
+
+    const newSiblings = [...siblings]
+    ;[newSiblings[currentIndex - 1], newSiblings[currentIndex]] = [newSiblings[currentIndex], newSiblings[currentIndex - 1]]
+    
+    const updates = newSiblings.map((cat, idx) => ({ id: cat.id, sortOrder: idx }))
+    
+    try {
+      await categoriesApi.updateOrder(updates, token)
+      toast.success(isArabic ? 'تم تحديث الترتيب' : 'Order updated')
+      fetchCategories()
+    } catch {
+      toast.error(isArabic ? 'خطأ في تحديث الترتيب' : 'Error updating order')
+    }
+  }
+
+  const handleMoveDown = async (category: Category, siblings: Category[]) => {
+    if (!token) return
+    const currentIndex = siblings.findIndex(c => c.id === category.id)
+    if (currentIndex >= siblings.length - 1) return
+
+    const newSiblings = [...siblings]
+    ;[newSiblings[currentIndex], newSiblings[currentIndex + 1]] = [newSiblings[currentIndex + 1], newSiblings[currentIndex]]
+    
+    const updates = newSiblings.map((cat, idx) => ({ id: cat.id, sortOrder: idx }))
+    
+    try {
+      await categoriesApi.updateOrder(updates, token)
+      toast.success(isArabic ? 'تم تحديث الترتيب' : 'Order updated')
+      fetchCategories()
+    } catch {
+      toast.error(isArabic ? 'خطأ في تحديث الترتيب' : 'Error updating order')
+    }
+  }
+
+  const renderCategory = (category: Category, level: number = 0, siblings: Category[] = []) => {
     const hasChildren = category.children && category.children.length > 0
     const isExpanded = expandedCategories.has(category.id)
     const indent = level * 24
+    const currentIndex = siblings.findIndex(c => c.id === category.id)
 
     return (
       <div key={category.id}>
@@ -208,6 +248,32 @@ export default function CategoriesPage() {
           )}
 
           <div className="flex flex-wrap gap-2 mt-3 md:mt-4 pt-3 border-t border-gray-100">
+            {siblings.length > 1 && (
+              <>
+                <button
+                  onClick={() => handleMoveUp(category, siblings)}
+                  disabled={currentIndex === 0}
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition-colors text-xs font-medium ${
+                    currentIndex === 0 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                  }`}
+                >
+                  ↑ {isArabic ? 'أعلى' : 'Up'}
+                </button>
+                <button
+                  onClick={() => handleMoveDown(category, siblings)}
+                  disabled={currentIndex === siblings.length - 1}
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition-colors text-xs font-medium ${
+                    currentIndex === siblings.length - 1 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                  }`}
+                >
+                  ↓ {isArabic ? 'أسفل' : 'Down'}
+                </button>
+              </>
+            )}
             <button
               onClick={() => handleAddSubcategory(category)}
               className="px-2 md:px-3 py-1 md:py-1.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium"
@@ -231,7 +297,7 @@ export default function CategoriesPage() {
 
         {hasChildren && isExpanded && (
           <div className="mt-2 space-y-2">
-            {category.children!.map(child => renderCategory(child, level + 1))}
+            {category.children!.map(child => renderCategory(child, level + 1, category.children || []))}
           </div>
         )}
       </div>
@@ -361,7 +427,7 @@ export default function CategoriesPage() {
         <p className="text-gray-600">{isArabic ? 'جاري التحميل...' : 'Loading...'}</p>
       ) : (
         <div className="space-y-3">
-          {categories.map(category => renderCategory(category))}
+          {categories.map(category => renderCategory(category, 0, categories))}
 
           {categories.length === 0 && (
             <div className="text-center py-12 bg-white rounded-xl shadow-md">
