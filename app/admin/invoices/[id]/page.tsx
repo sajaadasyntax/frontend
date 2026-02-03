@@ -35,7 +35,7 @@ interface Order {
   loyaltyPointsEarned: number
   loyaltyPointsUsed: number
   couponCode: string | null
-  paymentScreenshot: string | null
+  paymentProof: string | null
   createdAt: string
   items: OrderItem[]
   user: {
@@ -227,21 +227,21 @@ export default function AdminInvoiceDetailPage({ params }: { params: { id: strin
 
         {/* Status & Summary */}
         <div className="space-y-6">
-          {/* Payment Screenshot - Show FIRST for visibility */}
-          {order.paymentScreenshot && (
+          {/* Payment Proof - Show FIRST for visibility */}
+          {order.paymentProof && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-xl font-bold text-primary mb-4">
                 {isArabic ? 'إيصال الدفع (mBoK)' : 'Payment Receipt (mBoK)'}
               </h2>
               <a 
-                href={getImageSrc(order.paymentScreenshot)} 
+                href={getImageSrc(order.paymentProof)} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block"
               >
                 <Image
-                  src={getImageSrc(order.paymentScreenshot)}
-                  alt="Payment Screenshot"
+                  src={getImageSrc(order.paymentProof)}
+                  alt="Payment Proof"
                   width={300}
                   height={400}
                   className="rounded-lg w-full object-cover hover:opacity-80 transition-opacity cursor-zoom-in border border-gray-200"

@@ -24,6 +24,7 @@ export default function Header() {
   const [loyaltyShopUnlocked, setLoyaltyShopUnlocked] = useState(false)
   const [hasShownUnlockMessage, setHasShownUnlockMessage] = useState(false)
   const [unreadMessageCount, setUnreadMessageCount] = useState(0)
+  const isArabic = locale === 'ar'
 
   // Redirect admin users to admin panel (they shouldn't access user pages)
   useEffect(() => {
@@ -75,8 +76,6 @@ export default function Header() {
       const messages = await messagesApi.getAll(token, 'inbox')
       const unreadCount = messages.filter((m: any) => !m.isRead).length
       
-      // Get previous unread count
-      const prevCount = unreadMessageCount
       setUnreadMessageCount(unreadCount)
 
       // Show notification only if there are NEW unread messages (count increased)
@@ -84,19 +83,18 @@ export default function Header() {
       const lastCount = localStorage.getItem(notifKey)
       const lastCountNum = lastCount ? parseInt(lastCount) : 0
       
-      // Only show notification if count increased (new messages arrived)
+      // Only show notification if count increased (new messages arrived) and not on messages page
       if (unreadCount > 0 && unreadCount > lastCountNum && pathname !== '/messages') {
-        localStorage.setItem(notifKey, unreadCount.toString())
         toast.success(
-          locale === 'ar'
+          isArabic
             ? `📬 لديك ${unreadCount} رسالة جديدة`
             : `📬 You have ${unreadCount} new message${unreadCount > 1 ? 's' : ''}`,
           { duration: 5000 }
         )
-      } else if (unreadCount === 0) {
-        // Reset the counter when all messages are read
-        localStorage.setItem(notifKey, '0')
       }
+      
+      // Always update the localStorage to current count
+      localStorage.setItem(notifKey, unreadCount.toString())
     } catch (error) {
       console.error('Error checking messages:', error)
     }
@@ -228,7 +226,9 @@ export default function Header() {
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <div className={`absolute top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 ${
+                isArabic ? 'left-0' : 'right-0'
+              }`}>
                 {isAuthenticated && user ? (
                   <>
                     <div className="px-4 py-2 border-b border-gray-100">
