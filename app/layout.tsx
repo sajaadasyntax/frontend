@@ -6,7 +6,7 @@ import Header from '@/components/Header'
 
 export const metadata: Metadata = {
   title: 'Mayan Shop - منتجات العناية بالبشرة',
-  description: 'Premium skincare products - منتجات العناية بالبشرة الفاخرة',
+  description: 'متجر متخصص في بيع المواد الخام التجميلية والصيدلانية في السودان لتصنيع مستحضرات العناية بالبشرة والشعر، بجودة عالية وتوريد موثوق.',
 }
 
 async function getMessages(locale: string) {

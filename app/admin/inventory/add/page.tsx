@@ -37,6 +37,10 @@ export default function AddProductPage() {
     longDescriptionAr: '',
     price: '',
     categoryId: '',
+    isNew: false,
+    isSale: false,
+    isComingSoon: false,
+    discount: '',
     loyaltyPointsEnabled: false,
     loyaltyPointsValue: '0'
   })
@@ -280,6 +284,66 @@ export default function AddProductPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Product Status Badges */}
+          <div className="md:col-span-2 bg-purple-50 p-4 rounded-lg border border-purple-200">
+            <h3 className="font-semibold text-purple-800 mb-3">
+              🏷️ {isArabic ? 'حالة المنتج' : 'Product Status'}
+            </h3>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isNew}
+                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+                  className="w-5 h-5"
+                />
+                <span className="text-purple-900">
+                  {isArabic ? 'منتج جديد' : 'New Product'}
+                </span>
+              </label>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isSale}
+                  onChange={(e) => setFormData({ ...formData, isSale: e.target.checked })}
+                  className="w-5 h-5"
+                />
+                <span className="text-purple-900">
+                  {isArabic ? 'تخفيض' : 'On Sale'}
+                </span>
+              </label>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isComingSoon}
+                  onChange={(e) => setFormData({ ...formData, isComingSoon: e.target.checked })}
+                  className="w-5 h-5"
+                />
+                <span className="text-purple-900">
+                  {isArabic ? 'قريباً' : 'Coming Soon'}
+                </span>
+              </label>
+            </div>
+            
+            {formData.isSale && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-purple-900 mb-1">
+                  {isArabic ? 'نسبة الخصم (%)' : 'Discount (%)'}
+                </label>
+                <input
+                  type="number"
+                  value={formData.discount}
+                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                  className="input-field w-32"
+                  min="0"
+                  max="100"
+                />
+              </div>
+            )}
           </div>
 
           {/* Loyalty Points Section */}

@@ -14,6 +14,7 @@ interface ProductCardProps {
   image?: string
   isSale?: boolean
   isNew?: boolean
+  isComingSoon?: boolean
   discount?: number
   loyaltyPointsEnabled?: boolean
   loyaltyPointsValue?: number
@@ -29,6 +30,7 @@ export default function ProductCard({
   image, 
   isSale, 
   isNew,
+  isComingSoon,
   discount,
   loyaltyPointsEnabled,
   loyaltyPointsValue,
@@ -42,6 +44,7 @@ export default function ProductCard({
   const name = locale === 'ar' ? nameAr : nameEn
   const displayPrice = discount ? price - (price * discount / 100) : price
   const isOutOfStock = stock <= 0
+  const isUnavailable = isOutOfStock || isComingSoon
 
   const getImageSrc = (img?: string) => {
     if (!img) return '/images/product-tube.png'
@@ -59,12 +62,25 @@ export default function ProductCard({
             alt={name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
-            className={`object-cover hover:scale-105 transition-transform ${isOutOfStock ? 'opacity-60 grayscale' : ''}`}
+            className={`object-cover hover:scale-105 transition-transform ${isUnavailable ? 'opacity-60 grayscale' : ''}`}
           />
-          {isOutOfStock && (
-            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-              <span className="bg-red-500 text-white px-3 py-1 rounded-lg text-xs md:text-sm font-bold">
-                {locale === 'ar' ? 'نفذت الكمية' : 'Out of Stock'}
+          {isComingSoon && (
+            <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center gap-0.5 md:gap-1 p-2">
+              <span className="bg-blue-500 text-white px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-[10px] md:text-sm font-bold text-center">
+                {locale === 'ar' ? 'قريباً' : 'Coming Soon'}
+              </span>
+              <span className="text-white text-[9px] md:text-xs font-medium text-center">
+                {locale === 'ar' ? 'ترقّب إطلاقه قريبًا' : 'Stay tuned'}
+              </span>
+            </div>
+          )}
+          {isOutOfStock && !isComingSoon && (
+            <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center gap-0.5 md:gap-1 p-2">
+              <span className="bg-red-500 text-white px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-[10px] md:text-sm font-bold text-center">
+                {locale === 'ar' ? 'غير متوفر الآن' : 'Out of stock'}
+              </span>
+              <span className="text-white text-[9px] md:text-xs font-medium text-center">
+                {locale === 'ar' ? 'ترقّب عودته قريبًا' : 'Coming back soon'}
               </span>
             </div>
           )}
@@ -75,14 +91,14 @@ export default function ProductCard({
       <h3 className="text-center text-primary font-semibold text-[11px] md:text-[13px] mb-1 md:mb-2 line-clamp-2">{name}</h3>
 
       {/* Loyalty Points */}
-      {!isOutOfStock && loyaltyPointsEnabled && loyaltyPointsValue && loyaltyPointsValue > 0 && (
+      {!isUnavailable && loyaltyPointsEnabled && loyaltyPointsValue && loyaltyPointsValue > 0 && (
         <p className="text-center text-amber-600 text-[10px] md:text-xs mb-1 md:mb-2">
           ⭐ +{loyaltyPointsValue} {locale === 'ar' ? 'نقطة' : 'pts'}
         </p>
       )}
 
-      {/* Price - Hidden for out of stock */}
-      {!isOutOfStock && (
+      {/* Price - Hidden when unavailable */}
+      {!isUnavailable && (
         <div className="text-center mb-2 md:mb-3">
           <span className="text-gray-600 text-xs md:text-sm block md:inline">
             {tc('currency')} {displayPrice.toLocaleString()}
@@ -95,12 +111,25 @@ export default function ProductCard({
         </div>
       )}
 
-      {/* Out of Stock Message */}
-      {isOutOfStock && (
+      {/* Coming Soon / Out of Stock Message */}
+      {isComingSoon && (
         <div className="text-center mb-2 md:mb-3">
-          <span className="text-red-600 font-semibold text-xs md:text-sm">
-            {locale === 'ar' ? 'نفذت الكمية' : 'Out of Stock'}
-          </span>
+          <p className="text-blue-600 font-semibold text-xs md:text-sm">
+            {locale === 'ar' ? 'قريباً' : 'Coming Soon'}
+          </p>
+          <p className="text-gray-500 text-[10px] md:text-xs">
+            {locale === 'ar' ? 'ترقّب إطلاقه قريبًا' : 'Stay tuned'}
+          </p>
+        </div>
+      )}
+      {isOutOfStock && !isComingSoon && (
+        <div className="text-center mb-2 md:mb-3">
+          <p className="text-red-600 font-semibold text-xs md:text-sm">
+            {locale === 'ar' ? 'غير متوفر الآن' : 'Out of stock'}
+          </p>
+          <p className="text-gray-500 text-[10px] md:text-xs">
+            {locale === 'ar' ? 'ترقّب عودته قريبًا' : 'Coming back soon'}
+          </p>
         </div>
       )}
 
@@ -108,11 +137,11 @@ export default function ProductCard({
       <Link href={`/products/${id}`}>
         <button 
           className={`w-full text-[10px] md:text-sm py-1.5 md:py-2 px-2 md:px-5 rounded-lg transition-colors flex items-center justify-center gap-1 md:gap-2 ${
-            isOutOfStock 
+            isUnavailable 
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
               : 'btn-primary'
           }`}
-          disabled={isOutOfStock}
+          disabled={isUnavailable}
         >
           {t('shopNow')}
           <Image 
@@ -120,7 +149,7 @@ export default function ProductCard({
             alt="proceed" 
             width={12} 
             height={12} 
-            className={`w-3 h-3 md:w-[14px] md:h-[14px] ${isOutOfStock ? 'opacity-50' : ''}`} 
+            className={`w-3 h-3 md:w-[14px] md:h-[14px] ${isUnavailable ? 'opacity-50' : ''}`} 
           />
         </button>
       </Link>

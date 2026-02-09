@@ -20,6 +20,7 @@ interface Product {
   image: string
   isNew: boolean
   isSale: boolean
+  isComingSoon: boolean
   discount: number
   loyaltyPointsEnabled: boolean
   loyaltyPointsValue: number
@@ -125,7 +126,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   nameAr: product.nameAr,
                   price: displayPrice,
                   image: product.image || '/images/product-tube.png',
-                  stock: product.stock
+                  stock: product.stock,
+                  isComingSoon: product.isComingSoon
                 }}
                 locale={locale}
               />
@@ -155,12 +157,29 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
               {/* Stock Status */}
               <div className="pt-2 md:pt-4 border-t border-gray-200">
-                <p className={`text-xs md:text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {product.stock > 0 
-                    ? (isArabic ? `متوفر (${product.stock} في المخزون)` : `In Stock (${product.stock} available)`)
-                    : (isArabic ? 'غير متوفر' : 'Out of Stock')
-                  }
-                </p>
+                {product.isComingSoon ? (
+                  <div>
+                    <p className="text-xs md:text-sm font-semibold text-blue-600">
+                      {isArabic ? 'قريباً' : 'Coming Soon'}
+                    </p>
+                    <p className="text-[10px] md:text-xs text-gray-500 mt-0.5">
+                      {isArabic ? 'ترقّب إطلاقه قريبًا' : 'Stay tuned'}
+                    </p>
+                  </div>
+                ) : product.stock > 0 ? (
+                  <p className="text-xs md:text-sm font-medium text-green-600">
+                    {isArabic ? `متوفر (${product.stock} في المخزون)` : `In Stock (${product.stock} available)`}
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-xs md:text-sm font-semibold text-red-600">
+                      {isArabic ? 'غير متوفر الآن' : 'Out of stock'}
+                    </p>
+                    <p className="text-[10px] md:text-xs text-gray-500 mt-0.5">
+                      {isArabic ? 'ترقّب عودته قريبًا' : 'Coming back soon'}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Recipes Button */}

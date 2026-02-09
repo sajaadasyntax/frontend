@@ -13,6 +13,7 @@ interface Product {
   price: number
   image: string
   stock: number
+  isComingSoon?: boolean
 }
 
 interface AddToCartButtonProps {
@@ -28,9 +29,15 @@ export default function AddToCartButton({ product, locale }: AddToCartButtonProp
   const isArabic = locale === 'ar'
   
   const isOutOfStock = product.stock <= 0
+  const isComingSoon = product.isComingSoon
+  const isUnavailable = isOutOfStock || isComingSoon
   const maxQuantity = product.stock
 
   const handleAddToCart = () => {
+    if (isComingSoon) {
+      toast.error(isArabic ? 'هذا المنتج قريباً' : 'This product is coming soon')
+      return
+    }
     if (isOutOfStock) {
       toast.error(isArabic ? 'هذا المنتج غير متوفر حالياً' : 'This product is out of stock')
       return
@@ -60,11 +67,27 @@ export default function AddToCartButton({ product, locale }: AddToCartButtonProp
     }
   }
 
+  if (isComingSoon) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+        <p className="text-blue-600 font-semibold">
+          {isArabic ? '🎉 قريباً' : '🎉 Coming Soon'}
+        </p>
+        <p className="text-blue-500 text-sm mt-1">
+          {isArabic ? 'ترقّب إطلاقه قريبًا' : 'Stay tuned for its release'}
+        </p>
+      </div>
+    )
+  }
+
   if (isOutOfStock) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
         <p className="text-red-600 font-semibold">
-          {isArabic ? '😔 هذا المنتج غير متوفر حالياً' : '😔 This product is currently out of stock'}
+          {isArabic ? 'غير متوفر الآن' : 'Out of stock'}
+        </p>
+        <p className="text-red-500 text-sm mt-1">
+          {isArabic ? 'ترقّب عودته قريبًا' : 'Coming back soon'}
         </p>
       </div>
     )
