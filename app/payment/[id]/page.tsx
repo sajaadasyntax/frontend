@@ -89,11 +89,11 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     setLoading(true)
 
     try {
-      // In production, you would upload the file to a storage service
-      // For now, we'll simulate the upload
-      const paymentProof = `uploads/${selectedFile.name}`
+      // Create FormData to upload the file
+      const formData = new FormData()
+      formData.append('paymentProof', selectedFile)
 
-      await ordersApi.update(params.id, { paymentProof }, token)
+      await ordersApi.update(params.id, formData, token)
 
       toast.success('Payment submitted! Awaiting verification.')
       router.push(`/invoices/${params.id}`)

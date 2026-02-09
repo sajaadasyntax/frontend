@@ -112,7 +112,12 @@ export const ordersApi = {
     request<any>('/orders', { method: 'POST', body: data, token }),
   
   update: (id: string, data: any, token: string) =>
-    request<any>(`/orders/${id}`, { method: 'PUT', body: data, token }),
+    request<any>(`/orders/${id}`, { 
+      method: 'PUT', 
+      body: data, 
+      token, 
+      isFormData: data instanceof FormData 
+    }),
 }
 
 // Coupons API
