@@ -179,12 +179,13 @@ export default function BankAccountsPage() {
         {bankAccounts.map((account) => (
           <div key={account.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             {account.image && (
-              <div className="relative h-48">
+              <div className="w-full bg-white flex items-center justify-center p-2">
                 <Image
                   src={getImageSrc(account.image)}
                   alt={isArabic ? account.bankNameAr : account.bankNameEn}
-                  fill
-                  className="object-cover"
+                  width={400}
+                  height={250}
+                  className="w-full h-auto object-contain"
                 />
               </div>
             )}

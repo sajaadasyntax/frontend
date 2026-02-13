@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useLocaleStore } from '@/store/locale-store'
-import { bankAccountsApi, supportApi, settingsApi } from '@/lib/api'
+import { bankAccountsApi, supportApi, settingsApi, UPLOADS_URL } from '@/lib/api'
 
 interface BankAccount {
   id: string
@@ -168,12 +168,16 @@ export default function SupportPage() {
           
           {bankAccounts.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
-              {bankAccounts.map((bank) => (
+              {bankAccounts.map((bank) => {
+                const bankImageSrc = bank.image
+                  ? (bank.image.startsWith('/uploads') ? `${UPLOADS_URL}${bank.image}` : bank.image)
+                  : null
+                return (
                 <div key={bank.id} className="bg-gray-50 rounded-lg overflow-hidden">
-                  {bank.image && (
-                    <div className="w-full h-48 md:h-auto bg-white flex items-center justify-center p-2 md:p-4">
+                  {bankImageSrc && (
+                    <div className="w-full bg-white flex items-center justify-center p-2 md:p-4">
                       <Image
-                        src={bank.image}
+                        src={bankImageSrc}
                         alt={isArabic ? bank.bankNameAr : bank.bankNameEn}
                         width={400}
                         height={250}
@@ -194,7 +198,8 @@ export default function SupportPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="flex justify-center">

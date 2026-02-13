@@ -132,29 +132,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 locale={locale}
               />
 
-              {/* Loyalty Points Badge */}
-              {product.loyaltyPointsEnabled && product.loyaltyPointsValue > 0 && (
-                <div className="bg-amber-50 p-2 md:p-3 rounded-lg border border-amber-200">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl md:text-2xl">⭐</span>
-                    <div>
-                      <p className="font-semibold text-amber-800 text-sm md:text-base">
-                        {isArabic 
-                          ? `اكسب ${product.loyaltyPointsValue} نقطة` 
-                          : `Earn ${product.loyaltyPointsValue} points`
-                        }
-                      </p>
-                      <p className="text-[10px] md:text-xs text-amber-700">
-                        {isArabic 
-                          ? 'عند شراء هذا المنتج' 
-                          : 'When you purchase this product'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Stock Status */}
               <div className="pt-2 md:pt-4 border-t border-gray-200">
                 {product.isComingSoon ? (

@@ -122,8 +122,6 @@ export default function HomePage() {
                     isSale={product.isSale}
                     isNew={product.isNew}
                     discount={product.discount || undefined}
-                    loyaltyPointsEnabled={product.loyaltyPointsEnabled}
-                    loyaltyPointsValue={product.loyaltyPointsValue}
                     hasRecipes={productsWithRecipes.includes(product.id)}
                     stock={product.stock}
                   />

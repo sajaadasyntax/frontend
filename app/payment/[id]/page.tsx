@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/auth-store'
-import { ordersApi, bankAccountsApi } from '@/lib/api'
+import { ordersApi, bankAccountsApi, UPLOADS_URL } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 interface Order {
@@ -139,9 +139,9 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
           {/* Bank Card */}
           <div className="flex justify-center mb-8">
             <div className="relative w-full max-w-md">
-              {bankAccounts.length > 0 ? (
+              {bankAccounts.length > 0 && bankAccounts[0].image ? (
                 <Image
-                  src={bankAccounts[0].image || '/images/bank-card.png'}
+                  src={bankAccounts[0].image.startsWith('/uploads') ? `${UPLOADS_URL}${bankAccounts[0].image}` : bankAccounts[0].image}
                   alt="Bank Card"
                   width={600}
                   height={380}
