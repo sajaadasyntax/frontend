@@ -46,7 +46,7 @@ export default function HomePage() {
   const [productsWithRecipes, setProductsWithRecipes] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [bannerImage, setBannerImage] = useState<string>('/images/banner.jpg')
+  const [bannerImage, setBannerImage] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -201,13 +201,17 @@ export default function HomePage() {
     <div className="min-h-screen bg-white px-3 md:px-[5%]">
       {/* Hero Banner */}
       <section className="relative w-full h-[200px] sm:h-[300px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-lg md:rounded-none">
-        <Image
-          src={bannerImage}
-          alt="Hero Banner"
-          fill
-          className="object-cover"
-          priority
-        />
+        {bannerImage ? (
+          <Image
+            src={bannerImage}
+            alt="Hero Banner"
+            fill
+            className="object-cover"
+            priority
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 animate-pulse" />
+        )}
       </section>
 
       {/* Search Results Header with Back Button */}
