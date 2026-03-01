@@ -63,6 +63,7 @@ export default function ProductCard({
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             className={`object-cover hover:scale-105 transition-transform ${isUnavailable ? 'opacity-60 grayscale' : ''}`}
+            unoptimized
           />
           {isComingSoon && (
             <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center gap-0.5 md:gap-1 p-2">
