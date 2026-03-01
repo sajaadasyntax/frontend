@@ -25,19 +25,10 @@ export default function CartPage() {
   const [state, setState] = useState('Kassala')
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
-  const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false)
-  const [loyaltyDiscount, setLoyaltyDiscount] = useState(0)
-
   const subtotal = getTotal()
   const delivery = 3000
   
-  // Calculate loyalty points discount (1 point = 1 SDG)
-  const userLoyaltyPoints = user?.loyaltyPoints || 0
-  const maxLoyaltyDiscount = Math.min(userLoyaltyPoints, subtotal + delivery - discount)
-  
-  // Update loyalty discount when toggle changes
-  const effectiveLoyaltyDiscount = useLoyaltyPoints ? maxLoyaltyDiscount : 0
-  const grandTotal = Math.max(0, subtotal + delivery - discount - effectiveLoyaltyDiscount)
+  const grandTotal = Math.max(0, subtotal + delivery - discount)
 
   const handleApplyCoupon = async () => {
     if (!couponCode) return
@@ -74,8 +65,7 @@ export default function CartPage() {
         country,
         state,
         address,
-        couponCode: couponCode || undefined,
-        useLoyaltyPoints
+        couponCode: couponCode || undefined
       }, token)
 
       clearCart()
@@ -303,37 +293,6 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div>
-              {/* Loyalty Points Section */}
-              {isAuthenticated && userLoyaltyPoints > 0 && (
-                <div className="mb-3 md:mb-4 p-2 md:p-3 bg-amber-50 rounded-lg border border-amber-200">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useLoyaltyPoints}
-                      onChange={(e) => setUseLoyaltyPoints(e.target.checked)}
-                      className="w-4 h-4 md:w-5 md:h-5"
-                    />
-                    <span className="text-amber-900 text-sm md:text-base">
-                      {locale === 'ar' ? 'استخدم نقاط الولاء' : 'Use Loyalty Points'}
-                    </span>
-                  </label>
-                  <p className="text-xs md:text-sm text-amber-700 mt-1">
-                    {locale === 'ar' 
-                      ? `لديك ${userLoyaltyPoints} نقطة (= SDG ${userLoyaltyPoints})`
-                      : `You have ${userLoyaltyPoints} points (= SDG ${userLoyaltyPoints})`
-                    }
-                  </p>
-                  {useLoyaltyPoints && (
-                    <p className="text-xs md:text-sm font-semibold text-amber-800 mt-1">
-                      {locale === 'ar' 
-                        ? `سيتم خصم: SDG ${maxLoyaltyDiscount}`
-                        : `Will apply: SDG ${maxLoyaltyDiscount} discount`
-                      }
-                    </p>
-                  )}
-                </div>
-              )}
-
               <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
                 <div className="flex justify-between text-primary text-sm md:text-base">
                   <span className="font-semibold">{t('cartSubtotal')}:</span>
@@ -347,12 +306,6 @@ export default function CartPage() {
                   <div className="flex justify-between text-green-600 text-sm md:text-base">
                     <span className="font-semibold">{t('discount')}:</span>
                     <span className="font-bold">-{tc('currency')} {discount.toFixed(2)}</span>
-                  </div>
-                )}
-                {effectiveLoyaltyDiscount > 0 && (
-                  <div className="flex justify-between text-amber-600 text-sm md:text-base">
-                    <span className="font-semibold">⭐ {locale === 'ar' ? 'نقاط الولاء' : 'Loyalty Points'}:</span>
-                    <span className="font-bold">-{tc('currency')} {effectiveLoyaltyDiscount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="border-t-2 border-primary pt-2 md:pt-3 mt-2 md:mt-3">

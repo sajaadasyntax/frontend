@@ -146,15 +146,20 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
                   width={600}
                   height={380}
                   className="w-full h-auto rounded-lg shadow-lg"
+                  unoptimized
                 />
               ) : (
-                <Image
-                  src="/images/bank-card.png"
-                  alt="Bank Card"
-                  width={600}
-                  height={380}
-                  className="w-full h-auto rounded-lg shadow-lg"
-                />
+                <div className="w-full bg-gray-100 rounded-lg p-8 text-center text-gray-500">
+                  {bankAccounts.length > 0 ? (
+                    <div className="space-y-1 text-sm text-gray-700">
+                      <p className="font-bold text-primary text-lg">{bankAccounts[0].bankNameEn}</p>
+                      <p>{bankAccounts[0].accountName}</p>
+                      <p>{bankAccounts[0].accountNumber}</p>
+                    </div>
+                  ) : (
+                    <p>No bank account information available</p>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -186,6 +186,7 @@ export default function BankAccountsPage() {
                   width={400}
                   height={250}
                   className="w-full h-auto object-contain"
+                  unoptimized
                 />
               </div>
             )}

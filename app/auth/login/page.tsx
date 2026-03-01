@@ -114,7 +114,7 @@ export default function LoginPage() {
             {/* Forgot Password Link */}
             <div className="text-right">
               <a
-                href="https://wa.me/249906001615"
+                href="https://wa.me/249123989933"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-secondary hover:underline"
